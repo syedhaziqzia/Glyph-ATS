@@ -1,7 +1,7 @@
 # Glyph ⚡ (v2.5)
 > **Ultra-Minimal, Ephemeral ATS Vector Analyzer, Parser X-Ray & Live Resume Studio**
 
-![Glyph UI](frontend/assets/Glyph_Logo.jpg)
+![Glyph Preview](frontend/assets/readme.png)
 
 Glyph bridges the gap between candidate resumes and enterprise Applicant Tracking Systems (Workday, Greenhouse, Lever). It evaluates PDF and scanned image resumes strictly in **volatile RAM (`io.BytesIO`)**—combining **Role Ontology Expansion**, **Bidirectional Synonym Equivalence**, **TF-IDF Cosine Similarity**, **Google-XYZ Bullet Quantification Analysis**, and a **Split-Screen Live PDF Resume Compiler** with **zero data retention**.
 
@@ -39,10 +39,12 @@ Glyph/
 │   └── requirements.txt     # Python backend dependencies
 ├── frontend/
 │   ├── assets/
+│   │   ├── readme.png       # UI preview showcase
 │   │   └── Glyph_Logo.jpg   # Brand emblem
 │   └── index.html           # Obsidian & Ice-Blue UI, telemetry dashboard & live studio
 ├── tests/
 │   └── test_engine.py       # Test suite for classifier, ontology, synonyms & PDF compiler
+├── LICENSE                  # MIT License
 └── README.md                # Documentation & local setup instructions
 ```
 
