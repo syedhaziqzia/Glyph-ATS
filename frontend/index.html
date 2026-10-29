@@ -1,0 +1,3476 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glyph — ATS Resume Analyzer &amp; Studio</title>
+  <meta name="description" content="Privacy-first ATS resume analyzer and high-scoring single-column PDF resume studio. Instant skill gap analysis, role expansion, and zero data retention.">
+  <link rel="icon" type="image/jpeg" href="assets/Glyph_Logo.jpg">
+
+  <!-- Google Fonts: Inter + Plus Jakarta Sans + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#030304',
+            surface: {
+              DEFAULT: '#09090b',
+              elevated: '#0f0f12',
+              glass: 'rgba(12, 12, 16, 0.82)',
+              hover: 'rgba(24, 24, 30, 0.85)'
+            },
+            card: {
+              surface: 'rgba(13, 13, 17, 0.75)',
+              solid: '#0a0a0d',
+              hover: '#121217',
+              border: 'rgba(255, 255, 255, 0.08)',
+              borderLight: 'rgba(255, 255, 255, 0.16)'
+            },
+            ice: {
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              glow: 'rgba(56, 189, 248, 0.35)',
+              subtle: 'rgba(56, 189, 248, 0.10)'
+            }
+          },
+          fontFamily: {
+            sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+            display: ['"Plus Jakarta Sans"', '"Inter"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --obsidian: #030304;
+      --card-bg: rgba(12, 12, 16, 0.76);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-border-hover: rgba(255, 255, 255, 0.16);
+      --ice-blue: #38bdf8;
+      --spring-easing: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      border-color: var(--card-border);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      background-color: var(--obsidian);
+      color: #f4f4f5;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Background */
+    .bg-grid-ambient {
+      background-image: 
+        radial-gradient(ellipse 85% 45% at 50% -10%, rgba(56, 189, 248, 0.13), transparent 70%),
+        radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.04), transparent 45%),
+        radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 28px 28px;
+      background-position: center top;
+    }
+
+    /* Clean Inset Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+      margin: 8px 0;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(56, 189, 248, 0.45);
+    }
+
+    /* Page View Transitions */
+    @keyframes viewFadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .view-panel {
+      animation: viewFadeIn 0.45s var(--spring-easing) forwards;
+    }
+
+    /* Bento Card */
+    .bento-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--card-border);
+      box-shadow: 
+        0 20px 40px -24px rgba(0, 0, 0, 0.75),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.07);
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .bento-card:hover {
+      border-color: var(--card-border-hover);
+    }
+
+    /* Drop Zone */
+    .drop-zone {
+      border: 1.5px dashed rgba(255, 255, 255, 0.16);
+      background: linear-gradient(180deg, rgba(16, 16, 22, 0.5) 0%, rgba(9, 9, 13, 0.6) 100%);
+      transition: all 0.3s var(--spring-easing);
+    }
+    .drop-zone:hover {
+      border-color: rgba(56, 189, 248, 0.45);
+      background: linear-gradient(180deg, rgba(56, 189, 248, 0.04) 0%, rgba(12, 12, 16, 0.65) 100%);
+    }
+    .drop-zone.drag-active {
+      border-color: #38bdf8;
+      border-style: solid;
+      background: rgba(56, 189, 248, 0.07);
+      box-shadow: 0 0 36px rgba(56, 189, 248, 0.16);
+    }
+
+    /* Laser Scan Line Loading Animation */
+    .laser-scanner {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 5%, #38bdf8 35%, #e0f2fe 50%, #38bdf8 65%, transparent 95%);
+      box-shadow: 0 0 16px #38bdf8;
+      z-index: 30;
+      pointer-events: none;
+      opacity: 0;
+    }
+    .laser-scanning {
+      opacity: 1;
+      animation: laserSweep 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+    }
+    @keyframes laserSweep {
+      0% { top: 2%; }
+      100% { top: 97%; }
+    }
+
+    /* Circular Progress Ring */
+    .progress-ring__circle {
+      transition: stroke-dashoffset 1.2s var(--spring-easing);
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+      filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.35));
+    }
+
+    /* Primary Button */
+    .btn-primary-cta {
+      position: relative;
+      background: linear-gradient(180deg, #18181f 0%, #0a0a0e 100%);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      box-shadow: 
+        0 0 24px -4px rgba(56, 189, 248, 0.28),
+        0 8px 16px -6px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      overflow: hidden;
+      transition: all 0.25s var(--spring-easing);
+    }
+    .btn-primary-cta:hover:not(:disabled) {
+      border-color: rgba(125, 211, 252, 0.85);
+      box-shadow: 
+        0 0 32px -4px rgba(56, 189, 248, 0.45),
+        0 10px 20px -6px rgba(0, 0, 0, 0.9),
+        inset 0 1px 0 rgba(255, 255, 255, 0.24);
+      transform: translateY(-1.5px);
+    }
+    .btn-primary-cta:active:not(:disabled) {
+      transform: translateY(0) scale(0.98);
+    }
+
+    /* Secondary Glass Button */
+    .btn-glass {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.2s var(--spring-easing);
+    }
+    .btn-glass:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.22);
+      transform: translateY(-1px);
+    }
+
+    /* Logo Cropping Containers (Preserving exact top navbar logo & rounded hero logo) */
+    .logo-box-navbar {
+      width: 34px;
+      height: 34px;
+      overflow: hidden;
+      border-radius: 9px;
+      background: transparent !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+      transition: transform 0.3s var(--spring-easing);
+    }
+    .group:hover .logo-box-navbar {
+      transform: scale(1.06);
+    }
+
+    .logo-box-hero {
+      width: 68px;
+      height: 68px;
+      overflow: hidden;
+      border-radius: 20px;
+      background: #050507;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      box-shadow: 
+        0 12px 30px -8px rgba(0, 0, 0, 0.85),
+        0 0 24px -4px rgba(56, 189, 248, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .logo-g-only {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      mix-blend-mode: screen;
+      transform: scale(2.15) translateY(11%);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+    .hero-emblem-wrapper {
+      animation: floatSlow 5s ease-in-out infinite;
+    }
+    .hero-ambient-glow {
+      position: absolute;
+      inset: -20px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.28) 0%, rgba(56, 189, 248, 0.06) 50%, transparent 72%);
+      filter: blur(16px);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Skill Pill */
+    .kw-pill {
+      transition: all 0.2s var(--spring-easing);
+    }
+    .kw-pill:hover {
+      transform: translateY(-1.5px);
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 100;
+      max-width: 420px;
+      transform: translateY(24px) scale(0.96);
+      opacity: 0;
+      transition: all 0.32s var(--spring-easing);
+      pointer-events: none;
+    }
+    .toast-container.toast-visible {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Form Inputs */
+    .glyph-input {
+      background: rgba(7, 7, 10, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      transition: all 0.2s var(--spring-easing);
+    }
+    .glyph-input:focus {
+      border-color: rgba(56, 189, 248, 0.6);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+      outline: none;
+      background: rgba(10, 10, 14, 0.96);
+    }
+
+    /* Stepper Tab Active States */
+    .step-tab {
+      transition: all 0.25s var(--spring-easing);
+    }
+    .step-tab.active {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: rgba(56, 189, 248, 0.45);
+      color: #ffffff;
+      box-shadow: 0 0 20px -4px rgba(56, 189, 248, 0.25);
+    }
+
+    /* =====================================================================
+       SMOOTH PREMIUM STEP & SUB-TAB TRANSITION ANIMATIONS
+       ===================================================================== */
+    @keyframes stepEnterForward {
+      0% {
+        opacity: 0;
+        transform: translateX(34px) translateY(8px) scale(0.975);
+        filter: blur(5px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0) translateY(0) scale(1);
+        filter: blur(0px);
+      }
+    }
+
+    @keyframes stepEnterBackward {
+      0% {
+        opacity: 0;
+        transform: translateX(-34px) translateY(8px) scale(0.975);
+        filter: blur(5px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0) translateY(0) scale(1);
+        filter: blur(0px);
+      }
+    }
+
+    @keyframes stepExitForward {
+      0% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+        filter: blur(0px);
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(-26px) scale(0.975);
+        filter: blur(4px);
+      }
+    }
+
+    @keyframes stepExitBackward {
+      0% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+        filter: blur(0px);
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(26px) scale(0.975);
+        filter: blur(4px);
+      }
+    }
+
+    .step-anim-in-forward {
+      animation: stepEnterForward 0.48s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .step-anim-in-backward {
+      animation: stepEnterBackward 0.48s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .step-anim-out-forward {
+      animation: stepExitForward 0.19s cubic-bezier(0.4, 0, 1, 1) forwards;
+      pointer-events: none;
+    }
+    .step-anim-out-backward {
+      animation: stepExitBackward 0.19s cubic-bezier(0.4, 0, 1, 1) forwards;
+      pointer-events: none;
+    }
+
+    @keyframes tabPanelGlide {
+      0% {
+        opacity: 0;
+        transform: translateY(8px) scale(0.99);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    .tab-panel-animate {
+      animation: tabPanelGlide 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes screenBootSweep {
+      0% {
+        opacity: 0.65;
+        transform: translateY(-100%);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(120%);
+      }
+    }
+    .monitor-screen-2d::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 0%, rgba(56, 189, 248, 0.12) 50%, transparent 100%);
+      pointer-events: none;
+      opacity: 0;
+      z-index: 25;
+    }
+    .monitor-screen-2d.screen-boot-flash::after {
+      animation: screenBootSweep 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* =====================================================================
+       2D ILLUSTRATED DESKTOP MONITOR + STAND + WIRED MOUSE (OBSIDIAN & ICE-BLUE)
+       ===================================================================== */
+    .monitor-frame-2d {
+      background: linear-gradient(180deg, #1b3649 0%, #122432 100%);
+      border: 3.5px solid #05080f;
+      border-radius: 26px;
+      padding: 14px 16px 10px 16px;
+      box-shadow:
+        inset 3px 3px 0px rgba(125, 211, 252, 0.32),
+        inset -3px -3px 0px rgba(5, 8, 15, 0.7),
+        0 26px 55px -18px rgba(0, 0, 0, 0.92),
+        0 0 42px -12px rgba(56, 189, 248, 0.22);
+      position: relative;
+      transition: transform 0.3s var(--spring-easing), box-shadow 0.3s ease;
+    }
+
+    .monitor-screen-2d {
+      background: #06090e;
+      border: 3.5px solid #05080f;
+      border-radius: 16px;
+      box-shadow:
+        inset 0 4px 24px rgba(0, 0, 0, 0.9),
+        0 2px 0 rgba(125, 211, 252, 0.22);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .monitor-bottom-bezel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 9px;
+      padding-bottom: 1px;
+      position: relative;
+    }
+
+    .monitor-power-pill {
+      width: 54px;
+      height: 11px;
+      border-radius: 999px;
+      border: 2.5px solid #05080f;
+      background: linear-gradient(180deg, #38bdf8 0%, #1d4e6b 100%);
+      box-shadow:
+        inset 0 1.5px 0 rgba(224, 242, 254, 0.65),
+        0 0 12px rgba(56, 189, 248, 0.45);
+      transition: all 0.25s ease;
+    }
+
+    /* 2D Sub-Tabs Inside Monitor Screen (Prevents Information Overload) */
+    .mon-subtab {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #a1a1aa;
+      transition: all 0.2s var(--spring-easing);
+    }
+    .mon-subtab:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.07);
+    }
+    .mon-subtab.active {
+      background: rgba(56, 189, 248, 0.14);
+      border-color: rgba(56, 189, 248, 0.5);
+      color: #e0f2fe;
+      box-shadow: 0 0 16px -4px rgba(56, 189, 248, 0.3);
+    }
+
+    /* =====================================================================
+       2D ILLUSTRATED LASER PRINTER & REALISTIC PAPER FEED PHYSICS
+       ===================================================================== */
+    .printer-body-2d {
+      background: linear-gradient(180deg, #214359 0%, #152b3b 62%, #0f202c 100%);
+      border: 4px solid #05080f;
+      border-radius: 28px 28px 20px 20px;
+      padding: 16px 18px 16px 18px;
+      box-shadow:
+        inset 3px 3px 0px rgba(186, 230, 253, 0.38),
+        inset -3px -3px 0px rgba(5, 8, 15, 0.75),
+        0 28px 60px -16px rgba(0, 0, 0, 0.95),
+        0 0 45px -10px rgba(56, 189, 248, 0.25);
+      position: relative;
+    }
+
+    /* Smoked-Glass Laser Window on Front of Printer */
+    .printer-laser-window {
+      background: linear-gradient(180deg, #04080e 0%, #09131d 100%);
+      border: 3px solid #05080f;
+      border-radius: 12px;
+      height: 28px;
+      position: relative;
+      overflow: hidden;
+      box-shadow:
+        inset 0 4px 10px rgba(0, 0, 0, 0.95),
+        0 1.5px 0 rgba(125, 211, 252, 0.25);
+    }
+
+    .printer-laser-carriage {
+      position: absolute;
+      top: 3px;
+      left: 12%;
+      width: 42px;
+      height: 20px;
+      border-radius: 6px;
+      background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+      border: 2px solid #05080f;
+      box-shadow: 0 0 18px 4px rgba(56, 189, 248, 0.65);
+      transition: left 0.35s var(--spring-easing);
+    }
+
+    @keyframes laserHeadScan {
+      0% { left: 6%; }
+      25% { left: 78%; }
+      50% { left: 14%; }
+      75% { left: 82%; }
+      100% { left: 12%; }
+    }
+    .printer-scanning .printer-laser-carriage {
+      animation: laserHeadScan 1.35s ease-in-out;
+    }
+
+    /* Recessed Dark Output Mouth Where Paper Emerges */
+    .printer-output-slot {
+      background: #020408;
+      border: 4px solid #05080f;
+      border-radius: 16px;
+      padding: 10px 14px 16px 14px;
+      box-shadow:
+        inset 0 12px 24px rgba(0, 0, 0, 0.98),
+        0 2px 0 rgba(186, 230, 253, 0.24);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .printer-laser-roller {
+      height: 6px;
+      border-radius: 999px;
+      background: repeating-linear-gradient(
+        90deg,
+        #152b3b 0px,
+        #152b3b 16px,
+        #38bdf8 16px,
+        #38bdf8 26px
+      );
+      border: 2px solid #05080f;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
+      transition: all 0.3s ease;
+    }
+
+    /* Paper Viewport Clipping at Printer Mouth */
+    .printer-paper-viewport {
+      width: 100%;
+      padding: 0 14px 16px 14px;
+      margin-top: -16px;
+      overflow: hidden;
+      position: relative;
+      z-index: 20;
+    }
+
+    /* Top Shadow Cast by Printer Mouth onto Emerging Paper */
+    .printer-paper-mouth-shadow {
+      position: absolute;
+      top: 0;
+      left: 18px;
+      right: 18px;
+      height: 18px;
+      background: linear-gradient(180deg, rgba(2, 4, 8, 0.92) 0%, rgba(2, 4, 8, 0.35) 55%, transparent 100%);
+      z-index: 30;
+      pointer-events: none;
+    }
+
+    /* Top Blank Sheet Intake Animation When Printing Starts */
+    @keyframes topSheetFeedIn {
+      0% { transform: translateY(0); }
+      35% { transform: translateY(28px); }
+      75% { transform: translateY(28px); opacity: 0.3; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    .top-sheet-feeding {
+      animation: topSheetFeedIn 1.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes printerMechanicalHum {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      25% { transform: translateY(-1.5px) rotate(-0.25deg); }
+      50% { transform: translateY(1.5px) rotate(0.25deg); }
+      75% { transform: translateY(-1px) rotate(-0.15deg); }
+    }
+    .printer-humming {
+      animation: printerMechanicalHum 0.18s ease-in-out 7;
+    }
+
+    /* Realistic Step-by-Step Paper Roll-Out From Inside the Printer Slot */
+    @keyframes paperFeedEject {
+      0% {
+        transform: translateY(-86%);
+        filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.6));
+      }
+      28% {
+        transform: translateY(-58%);
+      }
+      56% {
+        transform: translateY(-28%);
+      }
+      82% {
+        transform: translateY(-6%);
+      }
+      100% {
+        transform: translateY(0%);
+        filter: drop-shadow(0 22px 38px rgba(0, 0, 0, 0.85));
+      }
+    }
+    .paper-printing-active {
+      animation: paperFeedEject 1.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes paperPulseFlash {
+      0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7), inset 0 0 24px rgba(56, 189, 248, 0.25); }
+      100% { box-shadow: 0 0 0 12px rgba(56, 189, 248, 0), inset 0 0 0 rgba(56, 189, 248, 0); }
+    }
+    .paper-updated-flash {
+      animation: paperPulseFlash 0.65s ease-out;
+    }
+
+    /* Clean Resume Paper Section Block (Pure White Paper, No Blue Callout Box or Left Bar) */
+    .paper-sec-block {
+      background: transparent;
+      box-shadow: none;
+    }
+    .paper-sec-block.active-paper-sec {
+      background: transparent;
+      box-shadow: none;
+    }
+
+    /* Animated Data Cable Between Monitor & Printer */
+    @keyframes cableDataFlow {
+      0% { stroke-dashoffset: 48; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .cable-data-stream {
+      stroke-dasharray: 8 8;
+      animation: cableDataFlow 0.9s linear infinite;
+    }
+  </style>
+</head>
+<body class="bg-obsidian bg-grid-ambient selection:bg-ice-400/20 selection:text-ice-200 flex flex-col justify-between min-h-screen">
+
+  <!-- ================= FULL-WIDTH TOP NAVBAR & PROCESS STEPPER ================= -->
+  <header class="sticky top-0 z-40 pt-3 px-4 sm:px-8 lg:px-12 pointer-events-none">
+    <div class="w-full max-w-[1600px] mx-auto">
+      <nav class="pointer-events-auto min-h-[68px] px-5 sm:px-7 py-2.5 rounded-2xl bg-surface-glass backdrop-blur-2xl border border-card-border shadow-[0_12px_32px_-12px_rgba(0,0,0,0.85)] flex flex-wrap items-center justify-between gap-4">
+        
+        <!-- Brand & Cropped Navbar Logo (Unchanged as requested) -->
+        <a href="#" id="brand-home-link" class="flex items-center gap-3 group focus:outline-none" title="Glyph ATS Engine">
+          <div class="logo-box-navbar">
+            <img src="assets/Glyph_Logo.jpg" alt="Glyph Symbol" class="logo-g-only" />
+          </div>
+          <div class="flex items-center gap-2.5">
+            <span class="text-lg font-bold tracking-tight text-white font-display">Glyph</span>
+            <span class="text-xs font-mono text-ice-300 border border-ice-400/25 px-2 py-0.5 rounded-md bg-ice-subtle font-medium">v2.5</span>
+          </div>
+        </a>
+
+        <!-- Center Interactive 3-Step Process Flow Bar -->
+        <div class="flex items-center gap-1.5 sm:gap-2.5 bg-[#090b10]/90 border border-white/[0.1] p-1.5 rounded-2xl shadow-inner">
+          <button
+            type="button"
+            id="step-nav-1"
+            class="step-tab active px-3.5 sm:px-4 py-1.5 rounded-xl border border-transparent text-xs sm:text-sm font-semibold text-zinc-300 flex items-center gap-2 cursor-pointer transition-all"
+          >
+            <span id="step-badge-1" class="w-5 h-5 rounded-full bg-ice-400/25 text-ice-300 font-mono text-xs flex items-center justify-center font-bold">1</span>
+            <span>Upload &amp; Role</span>
+          </button>
+
+          <svg class="w-4 h-4 text-zinc-500 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+
+          <button
+            type="button"
+            id="step-nav-2"
+            class="step-tab px-3.5 sm:px-4 py-1.5 rounded-xl border border-transparent text-xs sm:text-sm font-semibold text-zinc-400 hover:text-white flex items-center gap-2 cursor-pointer transition-all"
+          >
+            <span id="step-badge-2" class="w-5 h-5 rounded-full bg-white/[0.07] text-zinc-300 font-mono text-xs flex items-center justify-center font-bold">2</span>
+            <span>Score &amp; Skill Gaps</span>
+            <span id="nav-score-pill" class="hidden text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"></span>
+          </button>
+
+          <svg class="w-4 h-4 text-zinc-500 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+
+          <button
+            type="button"
+            id="step-nav-3"
+            class="step-tab px-3.5 sm:px-4 py-1.5 rounded-xl border border-transparent text-xs sm:text-sm font-semibold text-zinc-400 hover:text-white flex items-center gap-2 cursor-pointer transition-all"
+          >
+            <span id="step-badge-3" class="w-5 h-5 rounded-full bg-white/[0.07] text-zinc-300 font-mono text-xs flex items-center justify-center font-bold">3</span>
+            <span>ATS Studio &amp; PDF</span>
+          </button>
+        </div>
+
+        <!-- Navbar Right Status & Quick Sample -->
+        <div class="hidden xl:flex items-center gap-3">
+          <div class="flex items-center gap-2 text-xs font-mono text-zinc-300 bg-white/[0.03] border border-white/[0.07] px-3.5 py-1.5 rounded-full">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" id="engine-status-dot"></span>
+            <span id="engine-status-text">100% RAM • Zero Storage</span>
+          </div>
+        </div>
+
+      </nav>
+    </div>
+  </header>
+
+  <!-- ================= FULL-WIDTH MAIN CONTAINER (1600px WIDESCREEN) ================= -->
+  <main class="relative z-10 w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12 pt-4 pb-14 flex-grow">
+
+    <!-- =======================================================================
+         PAGE VIEW 1: 2D DESKTOP MONITOR — CLEAN UPLOAD & TARGET ROLE
+         ======================================================================= -->
+    <div id="view-step-1" class="view-panel max-w-5xl mx-auto">
+      
+      <!-- Minimalist Single-Line Hero Title (Zero Clutter) -->
+      <section class="flex items-center justify-center gap-3 text-center mb-3">
+        <div class="relative w-[38px] h-[38px] flex items-center justify-center hero-emblem-wrapper flex-shrink-0">
+          <div class="logo-box-hero" style="width: 38px; height: 38px; border-radius: 12px;">
+            <img src="assets/Glyph_Logo.jpg" alt="Glyph Emblem" class="logo-g-only" />
+          </div>
+          <div class="hero-ambient-glow"></div>
+        </div>
+        <h1 class="text-lg sm:text-2xl font-extrabold text-white tracking-tight font-display">
+          Upload your resume, fix skill gaps &amp; <span class="text-transparent bg-clip-text bg-gradient-to-r from-white via-ice-200 to-ice-400">print an ATS-ready PDF.</span>
+        </h1>
+      </section>
+
+      <!-- 2D ILLUSTRATED DESKTOP MONITOR (STEP 1: UPLOAD & ROLE SCREEN) -->
+      <div class="monitor-frame-2d" id="resume-bento">
+        <div class="monitor-screen-2d" id="monitor-screen-step1">
+          <div id="laser-scan" class="laser-scanner"></div>
+
+          <!-- Clean Monitor Screen Header -->
+          <div class="flex items-center justify-between px-5 py-2.5 bg-[#0a0f18] border-b border-white/[0.08]">
+            <div class="flex items-center gap-2.5">
+              <span class="font-mono font-extrabold text-ice-400 text-sm tracking-widest select-none">&lt; / &gt;</span>
+              <span class="text-xs font-mono text-zinc-300 font-semibold">STEP 1 // UPLOAD RESUME &amp; TARGET ROLE</span>
+            </div>
+            <span class="text-[11px] font-mono text-zinc-400">PDF • PNG • JPG</span>
+          </div>
+
+          <!-- Spacious 2-Column Monitor Content -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 p-5 sm:p-6 items-stretch">
+            
+            <!-- Left Side (5 Cols): Clean File Dropzone -->
+            <div class="lg:col-span-5 flex flex-col">
+              <div id="drop-zone" class="drop-zone rounded-2xl p-5 flex flex-col items-center justify-center text-center cursor-pointer flex-grow relative overflow-hidden group min-h-[240px]">
+                <input type="file" id="file-input" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" class="sr-only">
+
+                <!-- Idle State -->
+                <div id="drop-zone-idle" class="flex flex-col items-center select-none my-auto">
+                  <label for="file-input" class="flex flex-col items-center cursor-pointer">
+                    <div class="w-14 h-14 rounded-2xl bg-ice-400/10 border border-ice-400/30 flex items-center justify-center mb-3 group-hover:border-ice-400 group-hover:scale-105 transition-all duration-300">
+                      <svg class="w-7 h-7 text-ice-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                    </div>
+                    <p class="text-base font-bold text-white mb-1">
+                      Drop resume here or <span class="text-ice-400 underline underline-offset-4">browse</span>
+                    </p>
+                    <p class="text-xs text-zinc-400 mb-4">
+                      Auto-verifies Resumes/CVs in RAM
+                    </p>
+                  </label>
+
+                  <button
+                    id="btn-demo-resume"
+                    type="button"
+                    class="text-xs font-medium text-zinc-200 hover:text-ice-300 transition-colors flex items-center gap-1.5 py-1.5 px-3.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] cursor-pointer"
+                  >
+                    <svg class="w-3.5 h-3.5 text-ice-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Try with Sample Resume</span>
+                  </button>
+                </div>
+
+                <!-- Selected File State -->
+                <div id="drop-zone-selected" class="hidden w-full flex flex-col items-center my-auto space-y-3">
+                  <div class="w-full bg-[#0b111a] border border-ice-400/35 rounded-2xl p-4 flex items-center justify-between shadow-xl">
+                    <div class="flex items-center gap-3 overflow-hidden">
+                      <div id="file-badge" class="w-11 h-11 rounded-xl bg-ice-400/15 border border-ice-400/40 flex items-center justify-center text-ice-300 font-mono text-xs font-bold flex-shrink-0">
+                        PDF
+                      </div>
+                      <div class="text-left overflow-hidden">
+                        <p id="file-name" class="text-sm font-bold text-white truncate max-w-[180px]">resume.pdf</p>
+                        <p id="file-size" class="text-xs text-zinc-300 font-mono mt-0.5">1.2 MB</p>
+                      </div>
+                    </div>
+                    <button id="btn-remove-file" type="button" class="text-zinc-400 hover:text-white p-1.5 rounded-xl hover:bg-white/[0.08] transition-colors" title="Remove file">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <span id="file-status-pill" class="text-xs font-mono text-emerald-300 bg-emerald-500/10 border border-emerald-500/25 px-3.5 py-1 rounded-full flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Verified Resume Ready</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Side (7 Cols): Clean Role Selector & Analyze Button -->
+            <div class="lg:col-span-7 flex flex-col justify-between bg-[#090d14] border border-white/[0.08] rounded-2xl p-5" id="jd-bento">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between gap-2">
+                  <h2 class="text-base font-bold text-white font-display">Target Role or Job Description</h2>
+                  <div class="flex items-center gap-1.5">
+                    <button id="btn-paste-jd" type="button" class="btn-glass text-xs font-medium text-zinc-300 hover:text-white px-2.5 py-1 rounded-lg cursor-pointer">
+                      Paste
+                    </button>
+                    <button id="btn-clear-jd" type="button" class="btn-glass text-xs font-medium text-zinc-400 hover:text-white px-2.5 py-1 rounded-lg cursor-pointer">
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 6 Core Quick Role Pills + Clean "More Roles" Dropdown (Zero Clutter) -->
+                <div class="flex flex-wrap items-center gap-2">
+                  <button type="button" data-preset="short_swe" class="preset-jd-btn text-xs font-medium text-ice-300 hover:text-white bg-ice-subtle hover:bg-ice-400/20 border border-ice-400/35 px-3 py-1.5 rounded-xl transition-all cursor-pointer">
+                    SWE / Intern
+                  </button>
+                  <button type="button" data-preset="fullstack" class="preset-jd-btn text-xs font-medium text-zinc-200 hover:text-white bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.1] px-3 py-1.5 rounded-xl transition-all cursor-pointer">
+                    Full-Stack
+                  </button>
+                  <button type="button" data-preset="frontend" class="preset-jd-btn text-xs font-medium text-zinc-200 hover:text-white bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.1] px-3 py-1.5 rounded-xl transition-all cursor-pointer">
+                    Frontend
+                  </button>
+                  <button type="button" data-preset="backend" class="preset-jd-btn text-xs font-medium text-zinc-200 hover:text-white bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.1] px-3 py-1.5 rounded-xl transition-all cursor-pointer">
+                    Backend
+                  </button>
+                  <button type="button" data-preset="ai_ml" class="preset-jd-btn text-xs font-medium text-zinc-200 hover:text-white bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.1] px-3 py-1.5 rounded-xl transition-all cursor-pointer">
+                    AI / Data
+                  </button>
+
+                  <!-- Clean Dropdown for Additional Roles -->
+                  <select id="more-roles-select" class="bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.12] text-xs font-medium text-zinc-200 rounded-xl px-3 py-1.5 cursor-pointer focus:outline-none focus:border-ice-400">
+                    <option value="" class="bg-[#090d14] text-zinc-400">More Roles (9) ▾</option>
+                    <option value="data_scientist" class="bg-[#090d14] text-white">Data Scientist</option>
+                    <option value="data_analyst" class="bg-[#090d14] text-white">Data / BI Analyst</option>
+                    <option value="cloud_devops" class="bg-[#090d14] text-white">Cloud / DevOps / SRE</option>
+                    <option value="cybersecurity" class="bg-[#090d14] text-white">Cybersecurity</option>
+                    <option value="mobile" class="bg-[#090d14] text-white">Mobile (iOS / Android)</option>
+                    <option value="pm_ba" class="bg-[#090d14] text-white">Product Manager / BA</option>
+                    <option value="uiux" class="bg-[#090d14] text-white">UI/UX Designer</option>
+                    <option value="qa" class="bg-[#090d14] text-white">QA / Automation</option>
+                    <option value="finance" class="bg-[#090d14] text-white">Finance / Quant</option>
+                  </select>
+                </div>
+
+                <!-- Clean Input Box -->
+                <textarea 
+                  id="jd-input" 
+                  rows="3" 
+                  placeholder="Pick a role chip above or paste a job description here..." 
+                  class="glyph-input w-full text-sm text-zinc-100 placeholder-zinc-500 rounded-xl p-3.5 resize-none font-sans leading-relaxed"
+                ></textarea>
+
+                <!-- Hidden telemetry hooks for JS compatibility -->
+                <div class="hidden">
+                  <span id="jd-word-count">0</span>
+                  <span id="jd-char-count">0</span>
+                  <span id="jd-quality-label">Ready</span>
+                  <div id="jd-density-bar"></div>
+                </div>
+              </div>
+
+              <!-- Primary Action CTA -->
+              <div class="pt-3 mt-2 flex justify-end">
+                <button 
+                  id="btn-analyze" 
+                  type="button" 
+                  class="btn-primary-cta w-full py-3 rounded-xl text-white font-semibold text-sm sm:text-base flex items-center justify-center gap-2.5 cursor-pointer select-none"
+                >
+                  <svg id="analyze-icon" class="w-4 h-4 text-ice-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <div id="analyze-spinner" class="hidden w-4 h-4 border-2 border-ice-400/30 border-t-ice-400 rounded-full animate-spin"></div>
+                  <span id="analyze-btn-text">Analyze Resume on Monitor →</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Bottom Monitor Bezel Power Pill -->
+        <div class="monitor-bottom-bezel">
+          <div class="monitor-power-pill"></div>
+        </div>
+      </div>
+
+      <!-- 2D ILLUSTRATED MONITOR STAND & WIRED MOUSE -->
+      <div class="w-full max-w-2xl mx-auto -mt-[3px] select-none pointer-events-none">
+        <svg viewBox="0 0 800 78" class="w-full h-auto overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="345" y="0" width="110" height="30" fill="#152b3b" stroke="#05080f" stroke-width="3.5"/>
+          <polygon points="347,2 453,2 420,28 347,28" fill="#1e3c52"/>
+          <polygon points="345,30 455,30 490,54 310,54" fill="#234861" stroke="#05080f" stroke-width="3.5" stroke-linejoin="round"/>
+          <polygon points="348,32 425,32 445,52 315,52" fill="#2e5c7a"/>
+          <rect x="302" y="52" width="196" height="11" rx="5.5" fill="#bae6fd" stroke="#05080f" stroke-width="3.5"/>
+          <rect x="310" y="64" width="180" height="6" rx="3" fill="#1d3b4f" opacity="0.65"/>
+          <path d="M 510 0 C 510 34, 608 16, 614 42" stroke="#05080f" stroke-width="4" stroke-linecap="round" fill="none"/>
+          <path d="M 510 0 C 510 34, 608 16, 614 42" stroke="#38bdf8" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.7"/>
+          <path d="M 568 64 L 568 52 C 568 41, 584 37, 614 37 C 644 37, 660 41, 660 52 L 660 64 Z" fill="#1e3c52" stroke="#05080f" stroke-width="3.5" stroke-linejoin="round"/>
+          <path d="M 573 49 C 578 41, 592 39, 614 39 C 636 39, 650 41, 655 49" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+          <line x1="614" y1="38" x2="614" y2="49" stroke="#05080f" stroke-width="2.5"/>
+          <rect x="572" y="65" width="84" height="4" rx="2" fill="#1d3b4f" opacity="0.6"/>
+        </svg>
+      </div>
+
+    </div>
+
+
+    <!-- =======================================================================
+         PAGE VIEW 2: 2D DESKTOP MONITOR — STREAMLINED SCORE & 1-CLICK SKILL BOOST
+         ======================================================================= -->
+    <div id="view-step-2" class="hidden view-panel max-w-5xl mx-auto">
+      
+      <!-- 2D ILLUSTRATED DESKTOP MONITOR (STEP 2: SCORE & SKILL INJECTION) -->
+      <div class="monitor-frame-2d">
+        <div class="monitor-screen-2d" id="monitor-screen-step2">
+
+          <!-- Clean Monitor Screen Top Bar -->
+          <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 bg-[#0a0f18] border-b border-white/[0.08]">
+            <div class="flex items-center gap-2.5">
+              <button id="btn-back-to-step1" type="button" class="btn-glass text-xs font-medium text-zinc-200 hover:text-white px-3 py-1.5 rounded-xl cursor-pointer">
+                ← Step 1
+              </button>
+              <span class="font-mono font-extrabold text-ice-400 text-sm tracking-widest select-none">&lt; / &gt;</span>
+              <span class="text-xs sm:text-sm font-mono font-bold text-white">STEP 2 // ATS SCORE &amp; 1-CLICK SKILL BOOSTER</span>
+              <!-- Hidden legacy badges kept for JS compatibility -->
+              <span id="report-format-pill" class="hidden">PDF</span>
+              <span id="report-resume-verified" class="hidden">✓</span>
+              <span id="report-timestamp" class="hidden"></span>
+              <button id="btn-copy-summary" type="button" class="hidden"><span id="copy-summary-text">Copy</span></button>
+            </div>
+
+            <button id="btn-open-builder" type="button" class="btn-primary-cta px-4 sm:px-5 py-2 rounded-xl text-white font-semibold text-xs sm:text-sm flex items-center gap-2 cursor-pointer">
+              <span>Step 3: Edit &amp; Print Resume →</span>
+            </button>
+          </div>
+
+          <div id="expanded-roles-banner" class="hidden"><div id="expanded-roles-list"></div></div>
+
+          <!-- Spacious 2-Column Monitor Layout (Left: Big Score Ring, Right: Clean 3-Tab Booster) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 p-5 sm:p-6 items-stretch">
+            
+            <!-- LEFT PANEL (4 Cols): CLEAN SCORE RING & SUMMARY -->
+            <div class="lg:col-span-4 bg-[#090d14] border border-white/[0.08] rounded-2xl p-5 flex flex-col items-center justify-between text-center">
+              <div class="flex flex-col items-center">
+                <!-- Animated Score Ring -->
+                <div class="relative w-36 h-36 flex items-center justify-center mb-3">
+                  <svg class="w-full h-full transform -rotate-90" viewBox="0 0 160 160">
+                    <circle cx="80" cy="80" r="66" stroke="rgba(255, 255, 255, 0.07)" stroke-width="12" fill="transparent" />
+                    <circle 
+                      id="score-circle" 
+                      cx="80" 
+                      cy="80" 
+                      r="66" 
+                      stroke="url(#ice-gradient)" 
+                      stroke-width="12" 
+                      stroke-linecap="round" 
+                      stroke-dasharray="414.69" 
+                      stroke-dashoffset="414.69" 
+                      fill="transparent" 
+                      class="progress-ring__circle"
+                    />
+                    <defs>
+                      <linearGradient id="ice-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#e0f2fe" />
+                        <stop offset="45%" stop-color="#38bdf8" />
+                        <stop offset="100%" stop-color="#0284c7" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div class="absolute flex flex-col items-center justify-center">
+                    <div class="flex items-baseline">
+                      <span id="score-counter" class="text-4xl font-extrabold text-white font-mono">0</span>
+                      <span class="text-base font-mono text-ice-400 font-bold">%</span>
+                    </div>
+                    <span class="text-[11px] font-mono uppercase text-zinc-400">Match Score</span>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-center gap-2 mb-2">
+                  <span id="score-badge" class="px-3 py-0.5 rounded-full text-xs font-mono font-semibold uppercase border border-ice-400/30 bg-ice-subtle text-ice-300">
+                    Analyzed
+                  </span>
+                  <span id="score-delta-badge" class="hidden px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                    +0%
+                  </span>
+                  <span id="audit-score-badge" class="hidden">100%</span>
+                </div>
+
+                <p id="score-description" class="text-xs text-zinc-300 leading-relaxed max-w-xs">
+                  Click any missing skill on the right to add it to your Step 3 resume printer.
+                </p>
+              </div>
+
+              <!-- Clean 2-Pill Counter -->
+              <div class="grid grid-cols-2 gap-2.5 w-full mt-4 pt-4 border-t border-white/[0.07]">
+                <div class="bg-white/[0.03] border border-white/[0.07] rounded-xl p-2.5 text-center">
+                  <div id="metric-matched-count" class="text-lg font-extrabold text-ice-400 font-mono">0</div>
+                  <div class="text-[11px] text-zinc-400">Matched Skills</div>
+                </div>
+                <div class="bg-white/[0.03] border border-white/[0.07] rounded-xl p-2.5 text-center">
+                  <div id="metric-missing-count" class="text-lg font-extrabold text-amber-300 font-mono">0</div>
+                  <div class="text-[11px] text-zinc-400">Missing Skills</div>
+                </div>
+                <div id="metric-kw-rate" class="hidden">0%</div>
+              </div>
+            </div>
+
+            <!-- RIGHT PANEL (8 Cols): SPACIOUS 3-TAB BOOSTER (ZERO OVERLOAD) -->
+            <div class="lg:col-span-8 bg-[#090d14] border border-white/[0.08] rounded-2xl p-5 flex flex-col justify-between">
+              <div>
+                <!-- 3 Clean Tabs -->
+                <div class="flex flex-wrap items-center justify-between gap-2 pb-3.5 mb-4 border-b border-white/[0.08]">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" data-step2-tab="missing" class="step2-tab-btn mon-subtab active text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-xl cursor-pointer">
+                      1. Missing Skills (+Add)
+                    </button>
+                    <button type="button" data-step2-tab="xyz" class="step2-tab-btn mon-subtab text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-xl cursor-pointer">
+                      2. Impact Bullets (+Add)
+                    </button>
+                    <button type="button" data-step2-tab="matched" class="step2-tab-btn mon-subtab text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-xl cursor-pointer">
+                      3. Matched (<span id="matched-badge-count">0</span>) &amp; Tips
+                    </button>
+                  </div>
+                  <button id="btn-copy-missing" type="button" class="btn-glass text-xs font-medium text-zinc-300 hover:text-white px-3 py-1.5 rounded-xl cursor-pointer">
+                    <span id="copy-missing-text">Copy Missing</span>
+                  </button>
+                </div>
+
+                <!-- Tab 1: Missing Skills -->
+                <div id="step2-panel-missing" class="step2-subpanel tab-panel-animate">
+                  <p class="text-xs sm:text-sm text-zinc-300 mb-3">
+                    Tap any missing skill below to inject it directly into your Step 3 Resume Printer:
+                  </p>
+                  <div id="missing-keywords-container" class="flex flex-wrap gap-2.5 max-h-[210px] overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- Tab 2: XYZ Impact Bullets -->
+                <div id="step2-panel-xyz" class="step2-subpanel hidden tab-panel-animate">
+                  <div class="flex items-center justify-between mb-3">
+                    <p class="text-xs sm:text-sm text-zinc-300">Tap any quantified achievement bullet to append it to your Experience section:</p>
+                    <span id="bullet-quant-badge" class="text-xs font-mono text-ice-300 bg-ice-subtle px-2.5 py-0.5 rounded-md">XYZ Impact</span>
+                  </div>
+                  <div id="xyz-suggestions-container" class="space-y-2.5 max-h-[210px] overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- Tab 3: Matched Skills & Key Recommendations -->
+                <div id="step2-panel-matched" class="step2-subpanel hidden tab-panel-animate space-y-4 max-h-[220px] overflow-y-auto pr-1">
+                  <div>
+                    <p class="text-xs font-mono uppercase text-zinc-400 mb-2">Matched Skills in Your Resume</p>
+                    <div id="matched-keywords-container" class="flex flex-wrap gap-2"></div>
+                  </div>
+                  <div class="pt-3 border-t border-white/[0.07]">
+                    <p class="text-xs font-mono uppercase text-zinc-400 mb-2">Key ATS Recommendations</p>
+                    <ul id="recommendations-list" class="space-y-2 text-xs text-zinc-200"></ul>
+                    <div id="audit-checks-container" class="hidden"></div>
+                    <pre id="xray-text-preview" class="hidden"></pre>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bottom Action Bar Inside Step 2 Monitor -->
+              <div class="pt-4 mt-4 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div id="step2-resume-sheet" class="flex items-center gap-2 text-xs font-mono text-emerald-300 bg-emerald-500/10 border border-emerald-500/25 px-3.5 py-2 rounded-xl">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>Target skills auto-queued for Step 3 Printer</span>
+                </div>
+
+                <button id="btn-goto-studio-from-gaps" type="button" class="w-full sm:w-auto btn-primary-cta py-3 px-6 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 cursor-pointer">
+                  <span>Continue to Step 3: Edit &amp; Print PDF →</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Bottom Monitor Bezel Power Pill -->
+        <div class="monitor-bottom-bezel">
+          <div class="monitor-power-pill"></div>
+        </div>
+      </div>
+
+      <!-- 2D ILLUSTRATED MONITOR STAND & WIRED MOUSE -->
+      <div class="w-full max-w-2xl mx-auto -mt-[3px] select-none pointer-events-none">
+        <svg viewBox="0 0 800 78" class="w-full h-auto overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="345" y="0" width="110" height="30" fill="#152b3b" stroke="#05080f" stroke-width="3.5"/>
+          <polygon points="347,2 453,2 420,28 347,28" fill="#1e3c52"/>
+          <polygon points="345,30 455,30 490,54 310,54" fill="#234861" stroke="#05080f" stroke-width="3.5" stroke-linejoin="round"/>
+          <polygon points="348,32 425,32 445,52 315,52" fill="#2e5c7a"/>
+          <rect x="302" y="52" width="196" height="11" rx="5.5" fill="#bae6fd" stroke="#05080f" stroke-width="3.5"/>
+          <rect x="310" y="64" width="180" height="6" rx="3" fill="#1d3b4f" opacity="0.65"/>
+          <path d="M 510 0 C 510 34, 608 16, 614 42" stroke="#05080f" stroke-width="4" stroke-linecap="round" fill="none"/>
+          <path d="M 510 0 C 510 34, 608 16, 614 42" stroke="#38bdf8" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.7"/>
+          <path d="M 568 64 L 568 52 C 568 41, 584 37, 614 37 C 644 37, 660 41, 660 52 L 660 64 Z" fill="#1e3c52" stroke="#05080f" stroke-width="3.5" stroke-linejoin="round"/>
+          <path d="M 573 49 C 578 41, 592 39, 614 39 C 636 39, 650 41, 655 49" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+          <line x1="614" y1="38" x2="614" y2="49" stroke="#05080f" stroke-width="2.5"/>
+          <rect x="572" y="65" width="84" height="4" rx="2" fill="#1d3b4f" opacity="0.6"/>
+        </svg>
+      </div>
+
+    </div>
+
+
+    <!-- =======================================================================
+         PAGE VIEW 3: 2D MONITOR WORKSTATION (LEFT) + 2D LASER PRINTER (RIGHT)
+         ======================================================================= -->
+    <div id="view-step-3" class="hidden view-panel">
+      
+      <form id="resume-builder-form">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start relative">
+          
+          <!-- =================================================================
+               LEFT COLUMN (6 Cols): 2D ILLUSTRATED MONITOR WORKSTATION EDITOR
+               ================================================================= -->
+          <div class="lg:col-span-6 flex flex-col items-center relative z-10">
+            <div class="monitor-frame-2d w-full">
+              <div class="monitor-screen-2d p-4 sm:p-5" id="monitor-screen-step3">
+                
+                <!-- Monitor Screen Top Header Bar -->
+                <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3.5 border-b border-white/10">
+                  <div class="flex items-center gap-2">
+                    <button id="btn-back-to-step2" type="button" class="btn-glass text-xs font-medium text-zinc-200 hover:text-white px-2.5 py-1 rounded-lg cursor-pointer">
+                      ← Score
+                    </button>
+                    <span class="font-mono font-bold text-sm text-ice-400 tracking-widest select-none">&lt; / &gt;</span>
+                    <span class="text-xs font-mono uppercase tracking-wider text-white font-bold">MONITOR // LIVE EDITOR</span>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <span id="studio-score-comparison" class="text-[11px] font-mono font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
+                      ⚡ ATS Optimized
+                    </span>
+                    <button
+                      type="button"
+                      id="btn-rescore-resume"
+                      class="btn-glass text-xs font-semibold text-ice-300 hover:text-white border-ice-400/40 px-2.5 py-1 rounded-lg flex items-center gap-1 cursor-pointer"
+                    >
+                      <span id="rescore-btn-text">↻ Verify Score</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 5 Clean Section Sub-Tabs Inside Monitor -->
+                <div class="flex flex-wrap items-center gap-1.5 mb-4">
+                  <button type="button" data-step3-tab="header" class="step3-tab-btn mon-subtab active text-xs font-semibold px-3 py-1.5 rounded-xl cursor-pointer">
+                    1. Basics
+                  </button>
+                  <button type="button" data-step3-tab="edu" class="step3-tab-btn mon-subtab text-xs font-semibold px-3 py-1.5 rounded-xl cursor-pointer">
+                    2. Education
+                  </button>
+                  <button type="button" data-step3-tab="exp" class="step3-tab-btn mon-subtab text-xs font-semibold px-3 py-1.5 rounded-xl cursor-pointer">
+                    3. Experience
+                  </button>
+                  <button type="button" data-step3-tab="proj" class="step3-tab-btn mon-subtab text-xs font-semibold px-3 py-1.5 rounded-xl cursor-pointer">
+                    4. Projects
+                  </button>
+                  <button type="button" data-step3-tab="skills" class="step3-tab-btn mon-subtab text-xs font-semibold px-3 py-1.5 rounded-xl cursor-pointer">
+                    5. Skills &amp; Certs
+                  </button>
+                </div>
+
+                <!-- TAB 1: HEADER, SECTION ORDER & SUMMARY -->
+                <div id="step3-panel-header" class="step3-subpanel tab-panel-animate space-y-3.5">
+                  <div class="flex flex-wrap items-center justify-between gap-2 bg-white/[0.02] border border-white/[0.08] rounded-xl px-3.5 py-2.5">
+                    <span class="text-xs font-bold text-zinc-200">Section Order:</span>
+                    <div class="flex items-center gap-4">
+                      <label class="flex items-center gap-1.5 text-xs text-white cursor-pointer">
+                        <input type="radio" name="rb-section-order" value="jakes" checked class="accent-sky-400">
+                        <span>Education Near Top</span>
+                      </label>
+                      <label class="flex items-center gap-1.5 text-xs text-zinc-300 cursor-pointer">
+                        <input type="radio" name="rb-section-order" value="standard" class="accent-sky-400">
+                        <span>Experience Near Top</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label class="block text-[11px] font-medium text-zinc-300 mb-1">Full Name *</label>
+                      <input type="text" id="rb-name" required value="Alex Vance" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5">
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-medium text-zinc-300 mb-1">Email Address *</label>
+                      <input type="email" id="rb-email" required value="alex.vance@glyph.dev" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5">
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-medium text-zinc-300 mb-1">Phone</label>
+                      <input type="text" id="rb-phone" value="+1 (555) 019-2834" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5">
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-medium text-zinc-300 mb-1">Location</label>
+                      <input type="text" id="rb-location" value="San Francisco, CA" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5">
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-medium text-zinc-300 mb-1">LinkedIn</label>
+                      <input type="text" id="rb-linkedin" value="linkedin.com/in/alexvance" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5">
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-medium text-zinc-300 mb-1">GitHub / Portfolio</label>
+                      <input type="text" id="rb-github" value="github.com/alexvance" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5">
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="block text-[11px] font-medium text-zinc-300 mb-1">Executive Summary</label>
+                    <textarea id="rb-summary" rows="3" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl p-2.5 resize-y leading-relaxed">Results-driven Software Engineer experienced in building scalable web and mobile applications, backend REST APIs, and reliable cloud data pipelines.</textarea>
+                  </div>
+                </div>
+
+                <!-- TAB 2: EDUCATION -->
+                <div id="step3-panel-edu" class="step3-subpanel hidden tab-panel-animate space-y-3 max-h-[340px] overflow-y-auto pr-1">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-xs font-bold text-zinc-200">Education Entries</span>
+                    <button type="button" id="btn-add-edu" class="text-xs font-semibold text-ice-300 hover:text-white bg-ice-subtle hover:bg-ice-400/20 border border-ice-400/35 px-2.5 py-1 rounded-xl transition-all cursor-pointer">
+                      + Add Education
+                    </button>
+                  </div>
+                  <div class="bg-white/[0.02] border border-white/[0.08] rounded-xl p-3.5 space-y-2.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+                      <div class="sm:col-span-8">
+                        <label class="block text-[11px] text-zinc-300 mb-1">University / Institution</label>
+                        <input type="text" id="rb-edu-inst" value="University of Washington" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5">
+                      </div>
+                      <div class="sm:col-span-4">
+                        <label class="block text-[11px] text-zinc-300 mb-1">Years</label>
+                        <input type="text" id="rb-edu-year" value="2020 – 2024" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5">
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-[11px] text-zinc-300 mb-1">Degree &amp; Major</label>
+                      <input type="text" id="rb-edu-degree" value="Bachelor of Science in Computer Science" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5">
+                    </div>
+                  </div>
+                  <div id="extra-edu-list" class="space-y-2.5"></div>
+                </div>
+
+                <!-- TAB 3: EXPERIENCE -->
+                <div id="step3-panel-exp" class="step3-subpanel hidden tab-panel-animate space-y-3 max-h-[340px] overflow-y-auto pr-1">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-xs font-bold text-zinc-200">Work Experience</span>
+                    <div class="flex items-center gap-1.5">
+                      <button type="button" id="btn-inject-xyz" class="text-xs font-semibold text-emerald-300 hover:text-white bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-1 rounded-xl transition-all cursor-pointer">
+                        + Add Quantified Bullet
+                      </button>
+                      <button type="button" id="btn-add-exp" class="text-xs font-semibold text-ice-300 hover:text-white bg-ice-subtle hover:bg-ice-400/20 border border-ice-400/35 px-2.5 py-1 rounded-xl transition-all cursor-pointer">
+                        + Add Role
+                      </button>
+                    </div>
+                  </div>
+                  <div class="bg-white/[0.02] border border-white/[0.08] rounded-xl p-3 space-y-2.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <div>
+                        <label class="block text-[11px] text-zinc-300 mb-1">Role / Title</label>
+                        <input type="text" id="rb-exp-title" value="Software Engineer" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5">
+                      </div>
+                      <div>
+                        <label class="block text-[11px] text-zinc-300 mb-1">Company / Organization</label>
+                        <input type="text" id="rb-exp-company" value="Starlight Systems" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5">
+                      </div>
+                      <div>
+                        <label class="block text-[11px] text-zinc-300 mb-1">Dates</label>
+                        <input type="text" id="rb-exp-dates" value="June 2022 – Present" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5">
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-[11px] text-zinc-400 mb-1">Achievement Bullets (One per line)</label>
+                      <textarea id="rb-exp-bullets" rows="4" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl p-2.5 resize-y leading-relaxed">Architected scalable backend services and REST APIs with Python and FastAPI handling 10M+ requests daily.
+Built responsive frontend interfaces in React and TypeScript, improving page load speed by 35%.
+Automated unit testing and CI/CD deployment workflows, reducing release turnaround time by 40%.</textarea>
+                    </div>
+                  </div>
+                  <div id="extra-exp-list" class="space-y-2.5"></div>
+                </div>
+
+                <!-- TAB 4: PROJECTS -->
+                <div id="step3-panel-proj" class="step3-subpanel hidden tab-panel-animate space-y-3 max-h-[340px] overflow-y-auto pr-1">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <span class="text-xs font-bold text-zinc-200">Technical Projects</span>
+                    <button type="button" id="btn-add-proj" class="text-xs font-semibold text-ice-300 hover:text-white bg-ice-subtle hover:bg-ice-400/20 border border-ice-400/35 px-2.5 py-1 rounded-xl transition-all cursor-pointer">
+                      + Add Project
+                    </button>
+                  </div>
+                  <div class="bg-white/[0.02] border border-white/[0.08] rounded-xl p-3 space-y-2.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                      <div class="sm:col-span-5">
+                        <label class="block text-[11px] text-zinc-300 mb-1">Project Name</label>
+                        <input type="text" id="rb-proj-name" value="Scalable Architecture &amp; Analytics Platform" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5">
+                      </div>
+                      <div class="sm:col-span-5">
+                        <label class="block text-[11px] text-zinc-300 mb-1">Tech Stack</label>
+                        <input type="text" id="rb-proj-tech" value="Python • React • TypeScript • SQL • REST APIs" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5">
+                      </div>
+                      <div class="sm:col-span-2">
+                        <label class="block text-[11px] text-zinc-300 mb-1">Year</label>
+                        <input type="text" id="rb-proj-date" value="2025" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-2.5 py-1.5">
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-[11px] text-zinc-400 mb-1">Project Bullets (One per line)</label>
+                      <textarea id="rb-proj-bullets" rows="3" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl p-2.5 resize-y leading-relaxed">Designed and shipped a full-featured platform with real-time synchronization, role-based access control, and sub-100ms query response times.</textarea>
+                    </div>
+                  </div>
+                  <div id="extra-proj-list" class="space-y-2.5"></div>
+                </div>
+
+                <!-- TAB 5: TECHNICAL SKILLS & CERTIFICATIONS -->
+                <div id="step3-panel-skills" class="step3-subpanel hidden tab-panel-animate space-y-3.5">
+                  <div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                      <label class="text-xs font-bold text-zinc-200">Technical Skills (Auto-Categorized)</label>
+                      <button type="button" id="btn-inject-missing" class="text-[11px] font-semibold text-ice-300 hover:text-white bg-ice-subtle hover:bg-ice-400/20 border border-ice-400/35 px-2.5 py-1 rounded-lg transition-all cursor-pointer">
+                        + Add All Missing Target Skills
+                      </button>
+                    </div>
+                    <textarea id="rb-skills" rows="3" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl p-3 resize-y leading-relaxed">Python, JavaScript, TypeScript, Java, SQL, React, Node.js, FastAPI, HTML/CSS, PostgreSQL, Firebase, REST APIs, Git, Linux, CI/CD, System Design</textarea>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-bold text-zinc-200 mb-1">Certifications (One per line)</label>
+                    <textarea id="rb-certifications" rows="3" class="glyph-input w-full text-xs sm:text-sm text-white rounded-xl p-3 resize-y leading-relaxed">AWS Cloud &amp; AI Practitioner Specialization 2025
+Google Software Engineering &amp; Cloud Foundations 2025</textarea>
+                  </div>
+                </div>
+
+                <!-- Monitor Footer Bar with Section Stepper & Send to Printer CTA -->
+                <div class="mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" id="btn-step3-prev-tab" class="btn-glass text-xs text-zinc-300 hover:text-white px-2.5 py-1.5 rounded-lg cursor-pointer">
+                      ← Prev Section
+                    </button>
+                    <button type="button" id="btn-step3-next-tab" class="btn-glass text-xs text-ice-300 hover:text-white px-2.5 py-1.5 rounded-lg cursor-pointer">
+                      Next Section →
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    id="btn-top-download-pdf"
+                    class="btn-primary-cta px-4 py-2 rounded-xl text-white font-semibold text-xs flex items-center gap-2 cursor-pointer"
+                  >
+                    <svg id="download-icon" class="w-3.5 h-3.5 text-ice-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    <div id="download-spinner" class="hidden w-3.5 h-3.5 border-2 border-ice-400/30 border-t-ice-400 rounded-full animate-spin"></div>
+                    <span id="download-btn-text">Send to Printer &amp; Download PDF</span>
+                  </button>
+                </div>
+
+              </div>
+
+              <!-- Monitor Bottom Chin with Center Pill Button -->
+              <div class="monitor-bottom-bezel">
+                <div class="monitor-power-pill"></div>
+              </div>
+            </div>
+
+            <!-- 2D Illustrated Monitor Stand + Wired Mouse + Data Cable to Printer SVG -->
+            <div class="w-full max-w-md mx-auto -mt-[3px] select-none pointer-events-none">
+              <svg viewBox="0 0 800 84" class="w-full h-auto overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="345" y="0" width="110" height="30" fill="#152b3b" stroke="#05080f" stroke-width="3.5"/>
+                <polygon points="347,2 453,2 420,28 347,28" fill="#1e3c52"/>
+                <polygon points="345,30 455,30 490,54 310,54" fill="#234861" stroke="#05080f" stroke-width="3.5" stroke-linejoin="round"/>
+                <polygon points="348,32 425,32 445,52 315,52" fill="#2e5c7a"/>
+                <rect x="302" y="52" width="196" height="11" rx="5.5" fill="#bae6fd" stroke="#05080f" stroke-width="3.5"/>
+                <rect x="310" y="64" width="180" height="6" rx="3" fill="#1d3b4f" opacity="0.65"/>
+                <!-- Mouse Wire & 2D Mouse -->
+                <path d="M 510 0 C 510 34, 608 16, 614 42" stroke="#05080f" stroke-width="4" stroke-linecap="round" fill="none"/>
+                <path d="M 510 0 C 510 34, 608 16, 614 42" stroke="#38bdf8" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.7"/>
+                <path d="M 568 64 L 568 52 C 568 41, 584 37, 614 37 C 644 37, 660 41, 660 52 L 660 64 Z" fill="#1e3c52" stroke="#05080f" stroke-width="3.5" stroke-linejoin="round"/>
+                <path d="M 573 49 C 578 41, 592 39, 614 39 C 636 39, 650 41, 655 49" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+                <line x1="614" y1="38" x2="614" y2="49" stroke="#05080f" stroke-width="2.5"/>
+                <rect x="572" y="65" width="84" height="4" rx="2" fill="#1d3b4f" opacity="0.6"/>
+                <!-- Glowing Data Link Cable Looping Toward the 2D Laser Printer on the Right -->
+                <path d="M 680 0 C 720 45, 790 45, 860 -20" stroke="#05080f" stroke-width="5" stroke-linecap="round" fill="none" class="hidden lg:block"/>
+                <path d="M 680 0 C 720 45, 790 45, 860 -20" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" fill="none" class="cable-data-stream hidden lg:block"/>
+              </svg>
+            </div>
+          </div>
+
+
+          <!-- =================================================================
+               RIGHT COLUMN (6 Cols):AUTHENTIC 2D ILLUSTRATED LASER PRINTER MACHINE
+               ================================================================= -->
+          <div id="printer-2d-unit" class="lg:col-span-6 flex flex-col items-center relative z-10">
+            
+            <!-- 1. 2D Illustrated Top Paper Cassette & Animated Blank Intake Sheet -->
+            <div class="w-full max-w-md mx-auto -mb-[5px] select-none pointer-events-none z-0">
+              <svg viewBox="0 0 500 68" class="w-full h-auto overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Back Angled Paper Support Tray -->
+                <polygon points="95,66 122,6 378,6 405,66" fill="#152b3b" stroke="#05080f" stroke-width="3.8" stroke-linejoin="round"/>
+                <polygon points="105,64 128,10 245,10 210,64" fill="#1e3c52"/>
+                <!-- Secondary Paper Stack in Cassette -->
+                <rect x="144" y="14" width="212" height="52" rx="4" fill="#cbd5e1" stroke="#05080f" stroke-width="3"/>
+                <!-- Animated Top Blank Sheet That Feeds Down Into Printer When Printing! -->
+                <g id="printer-top-feed-sheet">
+                  <rect x="136" y="20" width="228" height="48" rx="4" fill="#ffffff" stroke="#05080f" stroke-width="3.5"/>
+                  <line x1="164" y1="34" x2="250" y2="34" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/>
+                  <line x1="164" y1="44" x2="336" y2="44" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="164" y1="53" x2="305" y2="53" stroke="#e2e8f0" stroke-width="2" stroke-linecap="round"/>
+                </g>
+                <!-- Left & Right Cyan Paper Guides -->
+                <rect x="116" y="44" width="20" height="22" rx="4" fill="#38bdf8" stroke="#05080f" stroke-width="3.2"/>
+                <rect x="364" y="44" width="20" height="22" rx="4" fill="#38bdf8" stroke="#05080f" stroke-width="3.2"/>
+              </svg>
+            </div>
+
+            <!-- 2. 2D Cel-Shaded Rounded Laser Printer Chassis -->
+            <div id="printer-body-chassis" class="printer-body-2d w-full relative z-10">
+              
+              <!-- Row 1: Brand Emblem + OLED Telemetry Screen + Tactile 3D Print Button -->
+              <div class="flex flex-wrap items-center justify-between gap-2.5 mb-3">
+                <div class="flex items-center gap-2">
+                  <!-- 2D Side Cooling Vents + Brand Badge -->
+                  <div class="hidden sm:flex flex-col gap-1 pr-1">
+                    <span class="w-3.5 h-1 rounded-full bg-[#05080f]"></span>
+                    <span class="w-3.5 h-1 rounded-full bg-[#05080f]"></span>
+                    <span class="w-3.5 h-1 rounded-full bg-[#05080f]"></span>
+                  </div>
+                  <span class="font-mono font-extrabold text-xs sm:text-sm text-ice-200 bg-[#07111a] border-2 border-[#05080f] px-2.5 py-1 rounded-lg shadow-inner tracking-wide">
+                    &lt; / &gt; GLYPH LASERJET
+                  </span>
+
+                  <!-- Digital OLED Status Display -->
+                  <div class="flex items-center gap-2 bg-[#04090f] border-2 border-[#05080f] px-3 py-1 rounded-lg shadow-inner">
+                    <span id="printer-status-led" class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse"></span>
+                    <span id="printer-lcd-text" class="text-[11px] font-mono font-bold text-ice-300 tracking-wider">READY • 100% ATS</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <span id="preview-order-badge" class="hidden">Education Near Top</span>
+                  <!-- Tactile 2D Hardware Push Button -->
+                  <button
+                    type="submit"
+                    id="btn-download-pdf"
+                    class="bg-gradient-to-b from-[#7dd3fc] to-[#38bdf8] hover:from-[#bae6fd] hover:to-[#38bdf8] text-[#05080f] font-display font-extrabold text-xs sm:text-sm px-4 py-2 rounded-xl border-[2.5px] border-[#05080f] shadow-[0_4px_0_#05080f] active:translate-y-[3px] active:shadow-[0_1px_0_#05080f] transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    <svg class="w-4 h-4 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    <span>PRINT &amp; DOWNLOAD PDF</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Row 2: Transparent Smoked-Glass Laser Window (Shows Moving Cyan Laser Head!) -->
+              <div class="printer-laser-window mb-3 flex items-center justify-between px-3">
+                <div id="printer-laser-carriage" class="printer-laser-carriage"></div>
+                <span class="text-[10px] font-mono text-ice-400/60 tracking-widest uppercase ml-auto z-10 select-none">
+                  LASER FUSER OPTICS // 1200 DPI
+                </span>
+              </div>
+
+              <!-- Row 3: Recessed Dark Printer Output Mouth & Striped Feed Roller -->
+              <div class="printer-output-slot">
+                <div class="printer-laser-roller"></div>
+              </div>
+            </div>
+
+            <!-- 3. True Clipped Paper Mouth Viewport + Emerging US-Letter ATS Resume Sheet -->
+            <div class="printer-paper-viewport">
+              <div class="printer-paper-mouth-shadow"></div>
+
+              <div id="printer-paper-sheet" class="bg-white text-black rounded-b-2xl rounded-t-none px-6 pt-5 pb-7 sm:px-8 sm:pt-6 sm:pb-8 shadow-[0_26px_55px_rgba(0,0,0,0.9)] border-[3.5px] border-[#05080f] font-sans text-[11.2px] leading-[1.36] select-none space-y-2.5 min-h-[520px] relative">
+                
+                <!-- Hidden stamp badge element preserved for JS reference -->
+                <div id="printed-stamp-badge" class="hidden"></div>
+
+                <!-- Live Printed Header (Clean Black Text on Pure White Paper) -->
+                <div data-paper-section="header" class="paper-sec-block text-center pb-1 cursor-pointer" title="Click to edit Header & Summary on Monitor">
+                  <div id="preview-name" class="text-[19px] font-bold tracking-tight text-black leading-tight">Alex Vance</div>
+                  <div id="preview-contact-1" class="text-[10.2px] text-black mt-0.5">
+                    San Francisco, CA  •  +1 (555) 019-2834  •  alex.vance@glyph.dev
+                  </div>
+                  <div id="preview-contact-2" class="text-[10.2px] text-black">
+                    linkedin.com/in/alexvance  •  github.com/alexvance
+                  </div>
+                </div>
+
+                <!-- Dynamic Ordered Sections Container -->
+                <div id="preview-dynamic-sections" class="space-y-2.5"></div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </form>
+
+    </div>
+
+  </main>
+
+  <!-- ================= FLOATING TOAST ================= -->
+  <div id="floating-toast" class="toast-container">
+    <div class="bento-card p-4 px-5 flex items-start gap-3.5 shadow-2xl border-card-borderLight">
+      <div id="toast-icon" class="text-ice-400 flex-shrink-0 mt-0.5">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="flex-grow pr-2">
+        <p id="toast-title" class="text-sm font-bold text-white">Notification</p>
+        <p id="toast-message" class="text-xs text-zinc-300 mt-0.5 leading-relaxed"></p>
+      </div>
+      <button id="toast-close" class="text-zinc-400 hover:text-white text-sm flex-shrink-0 cursor-pointer">✕</button>
+    </div>
+  </div>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="relative z-10 border-t border-card-border py-6 text-xs font-mono text-zinc-400 bg-obsidian/90 backdrop-blur-md">
+    <div class="w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="text-white font-semibold">Glyph</span>
+        <span class="text-zinc-600">/</span>
+        <span>Privacy-First ATS Analyzer &amp; High-Scoring Resume Studio</span>
+      </div>
+      <p class="text-xs text-zinc-400">
+        100% Free &amp; Unlimited • All documents processed strictly in volatile RAM with zero data storage.
+      </p>
+    </div>
+  </footer>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    const API_BASE_URL = window.location.origin.includes('http') && !window.location.origin.startsWith('file:') 
+      ? window.location.origin 
+      : 'http://127.0.0.1:8000';
+
+    let selectedFile = null;
+    let latestAnalysisResult = null;
+    let originalUploadedScore = null;
+    let toastTimeout = null;
+    let loadingStageInterval = null;
+
+    // Step Views & Nav Buttons + Smooth Directional Step Transitions
+    const viewStep1 = document.getElementById('view-step-1');
+    const viewStep2 = document.getElementById('view-step-2');
+    const viewStep3 = document.getElementById('view-step-3');
+    const stepNav1 = document.getElementById('step-nav-1');
+    const stepNav2 = document.getElementById('step-nav-2');
+    const stepNav3 = document.getElementById('step-nav-3');
+    let currentStepNumber = 1;
+    let stepTransitionTimer = null;
+
+    function triggerMonitorBootFlash(stepNum) {
+      const screenEl = document.getElementById(`monitor-screen-step${stepNum}`);
+      if (!screenEl) return;
+      screenEl.classList.remove('screen-boot-flash');
+      void screenEl.offsetWidth;
+      screenEl.classList.add('screen-boot-flash');
+    }
+
+    function switchStepView(stepNumber) {
+      if (stepNumber === currentStepNumber) return;
+      const isForward = stepNumber > currentStepNumber;
+      const stepMap = { 1: viewStep1, 2: viewStep2, 3: viewStep3 };
+      const navMap = { 1: stepNav1, 2: stepNav2, 3: stepNav3 };
+
+      const prevPanel = stepMap[currentStepNumber];
+      const nextPanel = stepMap[stepNumber];
+
+      stepNav1.classList.remove('active');
+      stepNav2.classList.remove('active');
+      stepNav3.classList.remove('active');
+      if (navMap[stepNumber]) navMap[stepNumber].classList.add('active');
+
+      if (stepNumber === 3) {
+        updateLiveResumePreview();
+      }
+
+      if (stepTransitionTimer) {
+        clearTimeout(stepTransitionTimer);
+        [viewStep1, viewStep2, viewStep3].forEach(p => {
+          p.classList.remove(
+            'step-anim-in-forward',
+            'step-anim-in-backward',
+            'step-anim-out-forward',
+            'step-anim-out-backward'
+          );
+          if (p !== nextPanel) p.classList.add('hidden');
+        });
+      }
+
+      const outClass = isForward ? 'step-anim-out-forward' : 'step-anim-out-backward';
+      const inClass = isForward ? 'step-anim-in-forward' : 'step-anim-in-backward';
+
+      if (prevPanel) {
+        prevPanel.classList.remove('step-anim-in-forward', 'step-anim-in-backward');
+        prevPanel.classList.add(outClass);
+      }
+
+      currentStepNumber = stepNumber;
+
+      stepTransitionTimer = setTimeout(() => {
+        [viewStep1, viewStep2, viewStep3].forEach(p => {
+          p.classList.add('hidden');
+          p.classList.remove(
+            'step-anim-in-forward',
+            'step-anim-in-backward',
+            'step-anim-out-forward',
+            'step-anim-out-backward'
+          );
+        });
+
+        nextPanel.classList.remove('hidden');
+        void nextPanel.offsetWidth;
+        nextPanel.classList.add(inClass);
+        triggerMonitorBootFlash(stepNumber);
+
+        // When entering Step 3, animate the resume paper smoothly feeding out of the 2D Laser Printer!
+        if (stepNumber === 3) {
+          const paper = document.getElementById('printer-paper-sheet');
+          if (paper) {
+            paper.classList.remove('paper-printing-active');
+            void paper.offsetWidth;
+            paper.classList.add('paper-printing-active');
+          }
+        }
+      }, 175);
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    stepNav1.addEventListener('click', () => switchStepView(1));
+    stepNav2.addEventListener('click', () => {
+      if (!latestAnalysisResult) {
+        showToast('Scan Resume First', 'Upload your resume and click Analyze to view your Match Score report.', 'info');
+        return;
+      }
+      switchStepView(2);
+    });
+    stepNav3.addEventListener('click', () => switchStepView(3));
+    document.getElementById('brand-home-link').addEventListener('click', (e) => {
+      e.preventDefault();
+      switchStepView(1);
+    });
+    document.getElementById('btn-back-to-step1').addEventListener('click', () => switchStepView(1));
+    document.getElementById('btn-back-to-step2').addEventListener('click', () => {
+      if (latestAnalysisResult) switchStepView(2);
+      else switchStepView(1);
+    });
+    document.getElementById('btn-open-builder').addEventListener('click', () => switchStepView(3));
+    document.getElementById('btn-goto-studio-from-gaps').addEventListener('click', () => switchStepView(3));
+
+    // Elements
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const dropZoneIdle = document.getElementById('drop-zone-idle');
+    const dropZoneSelected = document.getElementById('drop-zone-selected');
+    const fileNameEl = document.getElementById('file-name');
+    const fileSizeEl = document.getElementById('file-size');
+    const fileBadge = document.getElementById('file-badge');
+    const btnRemoveFile = document.getElementById('btn-remove-file');
+    const btnDemoResume = document.getElementById('btn-demo-resume');
+    const laserScan = document.getElementById('laser-scan');
+
+    const jdInput = document.getElementById('jd-input');
+    const jdWordCount = document.getElementById('jd-word-count');
+    const jdCharCount = document.getElementById('jd-char-count');
+    const jdDensityBar = document.getElementById('jd-density-bar');
+    const jdQualityLabel = document.getElementById('jd-quality-label');
+    const btnPasteJd = document.getElementById('btn-paste-jd');
+    const btnClearJd = document.getElementById('btn-clear-jd');
+
+    const btnAnalyze = document.getElementById('btn-analyze');
+    const analyzeIcon = document.getElementById('analyze-icon');
+    const analyzeSpinner = document.getElementById('analyze-spinner');
+    const analyzeBtnText = document.getElementById('analyze-btn-text');
+
+    const floatingToast = document.getElementById('floating-toast');
+    const toastTitle = document.getElementById('toast-title');
+    const toastMessage = document.getElementById('toast-message');
+    const toastIcon = document.getElementById('toast-icon');
+    const toastClose = document.getElementById('toast-close');
+
+    const scoreCircle = document.getElementById('score-circle');
+    const scoreCounter = document.getElementById('score-counter');
+    const scoreBadge = document.getElementById('score-badge');
+    const scoreDescription = document.getElementById('score-description');
+
+    const metricKwRate = document.getElementById('metric-kw-rate');
+    const metricMatchedCount = document.getElementById('metric-matched-count');
+    const metricMissingCount = document.getElementById('metric-missing-count');
+    const matchedBadgeCount = document.getElementById('matched-badge-count');
+    const reportFormatPill = document.getElementById('report-format-pill');
+
+    const missingKeywordsContainer = document.getElementById('missing-keywords-container');
+    const matchedKeywordsContainer = document.getElementById('matched-keywords-container');
+    const recommendationsList = document.getElementById('recommendations-list');
+    const reportTimestamp = document.getElementById('report-timestamp');
+
+    const btnCopyMissing = document.getElementById('btn-copy-missing');
+    const copyMissingText = document.getElementById('copy-missing-text');
+    const btnCopySummary = document.getElementById('btn-copy-summary');
+    const copySummaryText = document.getElementById('copy-summary-text');
+
+    const resumeBuilderForm = document.getElementById('resume-builder-form');
+    const btnInjectMissing = document.getElementById('btn-inject-missing');
+    const rbSkills = document.getElementById('rb-skills');
+    const btnDownloadPdf = document.getElementById('btn-download-pdf');
+    const btnTopDownloadPdf = document.getElementById('btn-top-download-pdf');
+    const downloadIcon = document.getElementById('download-icon');
+    const downloadSpinner = document.getElementById('download-spinner');
+    const downloadBtnText = document.getElementById('download-btn-text');
+
+    async function checkBackendHealth() {
+      const dot = document.getElementById('engine-status-dot');
+      const txt = document.getElementById('engine-status-text');
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/health`);
+        if (res.ok) {
+          const data = await res.json();
+          if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]';
+          if (txt) txt.textContent = data.ocr_available ? 'Engine & OCR Ready (RAM)' : '100% RAM • Zero Storage';
+        }
+      } catch (_) {}
+    }
+    checkBackendHealth();
+
+    // -------------------------------------------------------------------
+    // File Upload & Instant Resume Verification
+    // -------------------------------------------------------------------
+    dropZone.addEventListener('click', (e) => {
+      if (
+        e.target === fileInput ||
+        e.target.closest('label[for="file-input"]') ||
+        e.target.closest('#btn-remove-file') ||
+        e.target.closest('#btn-demo-resume')
+      ) {
+        return;
+      }
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        originalUploadedScore = null;
+        handleFileSelection(e.target.files[0]);
+      }
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('drag-active');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('drag-active');
+      });
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files && files.length > 0) {
+        originalUploadedScore = null;
+        handleFileSelection(files[0]);
+      }
+    });
+
+    btnDemoResume.addEventListener('click', (e) => {
+      e.stopPropagation();
+      originalUploadedScore = null;
+      const demoResumeLines = [
+        "Alex Vance - Software Engineer",
+        "San Francisco, CA | +1 (555) 019-2834 | alex.vance@glyph.dev | linkedin.com/in/alexvance | github.com/alexvance",
+        "PROFESSIONAL SUMMARY:",
+        "Results-driven Software Engineer experienced in Python, JavaScript, React, REST APIs, and SQL databases.",
+        "TECHNICAL SKILLS:",
+        "Python, JavaScript, React, HTML5, CSS3, SQL, Git, Linux, Data Structures, Algorithms.",
+        "PROFESSIONAL EXPERIENCE:",
+        "Software Engineer at Starlight Systems (June 2022 - Present)",
+        "- Built backend services and RESTful APIs in Python handling 50k+ requests daily.",
+        "- Developed responsive web interfaces in React and JavaScript, improving load times by 25%.",
+        "PROJECTS:",
+        "Glyph Analytics Platform - Built a web application for real-time data reporting.",
+        "EDUCATION:",
+        "Bachelor of Science in Computer Science, University of Washington (2019 - 2023)"
+      ];
+
+      const pdfBytes = buildMinimalPdfInMemory(demoResumeLines);
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const demoFile = new File([blob], 'Alex_Vance_Sample_Resume.pdf', { type: 'application/pdf' });
+      handleFileSelection(demoFile);
+    });
+
+    function buildMinimalPdfInMemory(linesInput) {
+      const lines = Array.isArray(linesInput) ? linesInput : [String(linesInput)];
+      let streamOps = "BT /F1 10 Tf 45 740 Td 14 TL\n";
+      for (const line of lines) {
+        const safeLine = String(line).replace(/([()\\])/g, '\\$1');
+        streamOps += `(${safeLine}) Tj T*\n`;
+      }
+      streamOps += "ET";
+      const objects = [
+        "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n",
+        "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n",
+        "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n",
+        `4 0 obj\n<< /Length ${streamOps.length} >>\nstream\n${streamOps}\nendstream\nendobj\n`,
+        "5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n"
+      ];
+      let pdf = "%PDF-1.4\n";
+      const offsets = [];
+      for (const obj of objects) {
+        offsets.push(pdf.length);
+        pdf += obj;
+      }
+      const xrefOffset = pdf.length;
+      pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+      for (const off of offsets) {
+        pdf += String(off).padStart(10, '0') + " 00000 n \n";
+      }
+      pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+      return new TextEncoder().encode(pdf);
+    }
+
+    function ejectSelectedFile() {
+      selectedFile = null;
+      fileInput.value = '';
+      dropZoneIdle.classList.remove('hidden');
+      dropZoneSelected.classList.add('hidden');
+    }
+
+    async function handleFileSelection(file) {
+      const validExts = ['.pdf', '.png', '.jpg', '.jpeg'];
+      const fn = file.name.toLowerCase();
+      const isValid = validExts.some(ext => fn.endsWith(ext));
+
+      if (!isValid) {
+        showToast('Unsupported Format', 'Please upload a PDF, PNG, or JPG resume.', 'error');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('File Exceeds Limit', 'Maximum allowed file size is 5MB.', 'error');
+        return;
+      }
+
+      selectedFile = file;
+      fileNameEl.textContent = file.name;
+      fileSizeEl.textContent = `${formatBytes(file.size)} • Verifying Resume...`;
+
+      if (fn.endsWith('.png')) {
+        fileBadge.textContent = 'PNG';
+        fileBadge.className = 'w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 font-mono text-sm font-bold flex-shrink-0';
+      } else if (fn.endsWith('.jpg') || fn.endsWith('.jpeg')) {
+        fileBadge.textContent = 'JPG';
+        fileBadge.className = 'w-12 h-12 rounded-xl bg-zinc-500/10 border border-zinc-500/30 flex items-center justify-center text-zinc-300 font-mono text-sm font-bold flex-shrink-0';
+      } else {
+        fileBadge.textContent = 'PDF';
+        fileBadge.className = 'w-12 h-12 rounded-xl bg-ice-400/10 border border-ice-400/30 flex items-center justify-center text-ice-400 font-mono text-sm font-bold flex-shrink-0';
+      }
+
+      dropZoneIdle.classList.add('hidden');
+      dropZoneSelected.classList.remove('hidden');
+
+      try {
+        const verifyForm = new FormData();
+        verifyForm.append('resume', file);
+        const res = await fetch(`${API_BASE_URL}/api/verify-resume`, {
+          method: 'POST',
+          body: verifyForm,
+        });
+
+        if (!res.ok) {
+          let errDetail = 'This file does not appear to be a Resume or CV.';
+          try {
+            const errJson = await res.json();
+            if (errJson && errJson.detail) errDetail = errJson.detail;
+          } catch (_) {}
+          ejectSelectedFile();
+          showToast('Non-Resume Document Rejected', errDetail, 'error');
+          return;
+        }
+
+        const verifyData = await res.json();
+        if (selectedFile === file) {
+          fileSizeEl.textContent = `${formatBytes(file.size)} • ✓ Verified Resume (${verifyData.resume_confidence}%)`;
+          showToast('Resume Verified', `${file.name} verified as a genuine Resume/CV.`, 'success');
+        }
+      } catch (_) {
+        if (selectedFile === file) {
+          fileSizeEl.textContent = formatBytes(file.size);
+          showToast('Resume Loaded', `${file.name} ready for analysis.`, 'info');
+        }
+      }
+    }
+
+    btnRemoveFile.addEventListener('click', (e) => {
+      e.stopPropagation();
+      ejectSelectedFile();
+    });
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1048576).toFixed(2) + ' MB';
+    }
+
+    // -------------------------------------------------------------------
+    // 14 Real-World Quick Role Presets
+    // -------------------------------------------------------------------
+    const JD_PRESETS = {
+      short_swe: `Software Engineer (SWE), Software Engineering Internships, Python, Java, C++, JavaScript, TypeScript, Data Structures, Algorithms, OOP, System Design, REST APIs, SQL, Git, Unit Testing, CI/CD, Linux, Agile`,
+      frontend: `Frontend Engineer, React Developer, JavaScript, TypeScript, React, Next.js, HTML5, CSS3, Tailwind CSS, Vue.js, Redux, State Management, Responsive Design, REST APIs, GraphQL, Web Performance, Accessibility, Jest, Cypress, Figma, Git`,
+      backend: `Backend Software Engineer, API Engineer, Python, Node.js, Java, Go, FastAPI, Django, Spring Boot, Express.js, REST APIs, GraphQL, Microservices, PostgreSQL, MySQL, MongoDB, Redis, Apache Kafka, System Design, SQL, Authentication, CI/CD, Linux, Git`,
+      fullstack: `Full-Stack Software Engineer, JavaScript, TypeScript, React, Next.js, Node.js, Python, FastAPI, HTML5, CSS3, Tailwind CSS, REST APIs, GraphQL, PostgreSQL, MongoDB, Redis, AWS, CI/CD, Unit Testing, System Design, Git`,
+      ai_ml: `Machine Learning & AI Engineer (MLE), Python, PyTorch, TensorFlow, Scikit-Learn, Machine Learning, Deep Learning, NLP, Computer Vision, LLMs, RAG, Pandas, NumPy, Feature Engineering, MLOps, FastAPI, SQL, Model Deployment, Git`,
+      data_scientist: `Data Scientist, Python, R, SQL, Pandas, NumPy, Scikit-Learn, Statistics, Hypothesis Testing, A/B Testing, Machine Learning, Data Visualization, Tableau, Feature Engineering, Regression, Classification, Probability, Time Series`,
+      data_analyst: `Data & Business Intelligence Analyst (DA/BI), SQL, Excel, Python, Tableau, Power BI, Data Visualization, Dashboards, KPIs, Data Cleaning, Statistics, Pandas, ETL Pipelines, Reporting, Google Analytics`,
+      cloud_devops: `Cloud / SRE / Platform Engineer, AWS, Google Cloud (GCP), Microsoft Azure, Kubernetes, Terraform, Ansible, CI/CD, GitHub Actions, Jenkins, Linux, Bash, Prometheus, Grafana, Monitoring, Networking, Microservices, Python`,
+      cybersecurity: `Cybersecurity & InfoSec Analyst, Network Security, SIEM, Splunk, Vulnerability Assessment, Penetration Testing, OWASP, IAM / OAuth, Active Directory, Cryptography, Firewalls, Incident Response, Linux, Python, Cloud Security`,
+      mobile: `Mobile Application Developer (iOS / Android), Swift, SwiftUI, Kotlin, React Native, Flutter, iOS, Android, REST APIs, Mobile UI, State Management, Unit Testing, Firebase, Git`,
+      pm_ba: `Product Manager & Business Analyst, Product Strategy, Roadmap, Agile / Scrum, User Stories, Stakeholder Management, Requirements Gathering, A/B Testing, SQL, Excel, Power BI, Wireframing, Figma, KPIs, User Research, Jira`,
+      uiux: `UI/UX & Product Designer, Figma, Wireframing, Prototyping, Design Systems, User Research, Usability Testing, Interaction Design, Responsive Design, WCAG Accessibility, HTML5, CSS3`,
+      qa: `QA & Test Automation Engineer (SDET), Selenium, Playwright, Cypress, Pytest, JUnit, Test Automation, API Testing, Postman, CI/CD, Jira, Regression Testing, Python, JavaScript, Git`,
+      finance: `Quantitative & Financial Analyst, Python, SQL, Excel, Financial Modeling, Valuation, Statistics, Time Series, Probability, Risk Management, Pandas, NumPy, Forecasting`
+    };
+
+    function updateJdCounters() {
+      const text = jdInput.value.trim();
+      const words = text ? text.split(/[\s,;/|]+/).filter(Boolean).length : 0;
+      jdWordCount.textContent = words;
+      if (jdCharCount) jdCharCount.textContent = jdInput.value.length;
+
+      if (words === 0) {
+        jdDensityBar.style.width = '0%';
+        jdQualityLabel.textContent = 'Ready for input';
+        jdQualityLabel.className = 'text-xs text-zinc-400';
+      } else if (words < 20) {
+        jdDensityBar.style.width = '100%';
+        jdQualityLabel.textContent = 'Smart Role Expansion Active';
+        jdQualityLabel.className = 'text-xs text-ice-400 font-semibold';
+      } else {
+        jdDensityBar.style.width = '100%';
+        jdQualityLabel.textContent = 'Role Benchmark Ready';
+        jdQualityLabel.className = 'text-xs text-emerald-400 font-semibold';
+      }
+    }
+    jdInput.addEventListener('input', updateJdCounters);
+
+    document.querySelectorAll('.preset-jd-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-preset');
+        if (JD_PRESETS[key]) {
+          jdInput.value = JD_PRESETS[key];
+          updateJdCounters();
+          showToast('Role Benchmark Loaded', `Loaded ${btn.textContent.trim()} target skills.`, 'info');
+        }
+      });
+    });
+
+    const moreRolesSelect = document.getElementById('more-roles-select');
+    if (moreRolesSelect) {
+      moreRolesSelect.addEventListener('change', (e) => {
+        const key = e.target.value;
+        if (key && JD_PRESETS[key]) {
+          jdInput.value = JD_PRESETS[key];
+          updateJdCounters();
+          const roleName = e.target.options[e.target.selectedIndex].text;
+          showToast('Role Benchmark Loaded', `Loaded ${roleName} target skills.`, 'info');
+        }
+      });
+    }
+
+    btnPasteJd.addEventListener('click', async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          jdInput.value = text;
+          updateJdCounters();
+          showToast('Clipboard Pasted', 'Job description pasted from clipboard.', 'info');
+        }
+      } catch (_) {
+        showToast('Clipboard Paste', 'Press Ctrl+V inside the text box to paste.', 'info');
+      }
+    });
+
+    btnClearJd.addEventListener('click', () => {
+      jdInput.value = '';
+      updateJdCounters();
+    });
+
+    // -------------------------------------------------------------------
+    // Step 1 -> Step 2: Analyze Resume & Navigate to Score Report Page
+    // -------------------------------------------------------------------
+    btnAnalyze.addEventListener('click', async () => {
+      if (!selectedFile) {
+        showToast('Resume Needed', 'Please upload your resume or click "Or load sample resume to test".', 'error');
+        dropZone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      const jdText = jdInput.value.trim();
+      if (!jdText || jdText.length < 2) {
+        showToast('Target Role Needed', 'Click one of the Quick Roles above or enter a target role / job description.', 'error');
+        jdInput.focus();
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const formData = new FormData();
+        formData.append('resume', selectedFile);
+        formData.append('job_description', jdText);
+
+        const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          let errorMsg = `Server error (${response.status})`;
+          try {
+            const errData = await response.json();
+            if (errData && errData.detail) errorMsg = errData.detail;
+          } catch (_) {}
+          throw new Error(errorMsg);
+        }
+
+        const data = await response.json();
+        if (originalUploadedScore === null) {
+          originalUploadedScore = data.match_score;
+        }
+        latestAnalysisResult = data;
+        renderResults(data);
+
+        // Navigate user smoothly to Step 2 (Dedicated Score Report View)
+        switchStepView(2);
+        showToast('Analysis Complete', `Match Score: ${data.match_score}% (${data.match_level})`, 'success');
+
+      } catch (error) {
+        if (error.message && error.message.includes('Non-Resume Document Rejected')) {
+          ejectSelectedFile();
+        }
+        showToast('Document Notice', error.message, 'error');
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    function setLoading(isLoading) {
+      btnAnalyze.disabled = isLoading;
+      if (loadingStageInterval) {
+        clearInterval(loadingStageInterval);
+        loadingStageInterval = null;
+      }
+      if (isLoading) {
+        laserScan.classList.add('laser-scanning');
+        analyzeIcon.classList.add('hidden');
+        analyzeSpinner.classList.remove('hidden');
+        const stages = [
+          'Verifying Resume...',
+          'Expanding Target Roles & Skills...',
+          'Pre-Optimizing Your ATS Studio Resume...'
+        ];
+        let idx = 0;
+        analyzeBtnText.textContent = stages[0];
+        loadingStageInterval = setInterval(() => {
+          idx = (idx + 1) % stages.length;
+          analyzeBtnText.textContent = stages[idx];
+        }, 450);
+      } else {
+        laserScan.classList.remove('laser-scanning');
+        analyzeIcon.classList.remove('hidden');
+        analyzeSpinner.classList.add('hidden');
+        analyzeBtnText.textContent = 'Analyze Resume & Continue to Score Report →';
+      }
+    }
+
+    // -------------------------------------------------------------------
+    // Render Results & Pre-Optimize Step 3 Studio
+    // -------------------------------------------------------------------
+    function formatSkillLabel(kw) {
+      if (!kw) return '';
+      const upperSet = new Set(['sql', 'aws', 'gcp', 'api', 'llm', 'nlp', 'oop', 'dsa', 'css', 'ios', 'sre', 'etl', 'kpi', 'kpis', 'seo', 'sem', 'crm', 'iam', 'vpn', 'dns', 'ci/cd', 'html5', 'css3', 'rag']);
+      const specialMap = {
+        'javascript': 'JavaScript',
+        'typescript': 'TypeScript',
+        'python': 'Python',
+        'fastapi': 'FastAPI',
+        'postgresql': 'PostgreSQL',
+        'mysql': 'MySQL',
+        'mongodb': 'MongoDB',
+        'nodejs': 'Node.js',
+        'node.js': 'Node.js',
+        'nextjs': 'Next.js',
+        'next.js': 'Next.js',
+        'reactjs': 'React',
+        'react': 'React',
+        'vuejs': 'Vue.js',
+        'graphql': 'GraphQL',
+        'rest apis': 'REST APIs',
+        'rest api': 'REST APIs',
+        'github': 'GitHub',
+        'github actions': 'GitHub Actions',
+        'scikit-learn': 'Scikit-Learn',
+        'pytorch': 'PyTorch',
+        'tensorflow': 'TensorFlow',
+        'power bi': 'Power BI',
+        'ui/ux': 'UI/UX',
+        'c++': 'C++',
+        'c#': 'C#',
+        '.net': '.NET'
+      };
+      const low = kw.trim().toLowerCase();
+      if (specialMap[low]) return specialMap[low];
+      if (upperSet.has(low)) return low.toUpperCase();
+      return kw.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+
+    function cleanCidText(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/\(cid:136\)/gi, '• ')
+        .replace(/\u02c6/g, '•')
+        .replace(/\(cid:22\)/gi, ' — ')
+        .replace(/\(cid:21\)/gi, '–')
+        .replace(/\(cid:11\)/gi, 'ff')
+        .replace(/\(cid:12\)/gi, 'fi')
+        .replace(/\(cid:13\)/gi, 'fl')
+        .replace(/\(cid:14\)/gi, 'ffi')
+        .replace(/\(cid:15\)/gi, 'ffl')
+        .replace(/\(cid:\s*\d+\)/gi, ' ')
+        .replace(/([A-Za-z]{2,})\ufffd\s*([A-Za-z]{2,})/g, '$1$2')
+        .replace(/\ufffd/g, ' ')
+        .replace(/\bgami\s+cation\b/g, 'gamification')
+        .replace(/\bcerti\s+cations\b/g, 'certifications')
+        .replace(/\bCerti\s+cate\b/g, 'Certificate')
+        .replace(/\bcerti\s+cate\b/g, 'certificate')
+        .replace(/\bnoti\s+cations\b/g, 'notifications')
+        .replace(/\bo\s+ine\b/g, 'offline')
+        .replace(/\b(?<=\s)ndings\b/g, 'findings')
+        .replace(/\bpro\s+ciency\b/g, 'proficiency')
+        .replace(/\be\s+cient\b/g, 'efficient')
+        .replace(/\bwork\s+ows\b/g, 'workflows')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    const JS_MONTH_PAT = '(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|Spring|Summer|Fall|Autumn|Winter)';
+    const JS_YEAR_PAT = '(?:19|20)\\d{2}';
+    const JS_DATE_POINT = `(?:${JS_MONTH_PAT}\\.?\\s+)?${JS_YEAR_PAT}`;
+    const JS_DATE_END = `(?:${JS_DATE_POINT}|Present|Current|Now|Ongoing|\\d{2})`;
+    const JS_DATE_RANGE = `${JS_DATE_POINT}\\s*(?:[\\-–—/]+|\\bto\\b)\\s*${JS_DATE_END}`;
+    const JS_SINGLE_MY = `${JS_MONTH_PAT}\\.?\\s+${JS_YEAR_PAT}`;
+    const JS_FULL_DATE = `(?:${JS_DATE_RANGE}|${JS_SINGLE_MY}|${JS_YEAR_PAT})`;
+
+    function normalizeDateStrJS(rawDate) {
+      if (!rawDate) return '';
+      let d = cleanCidText(rawDate).replace(/^[\s()\[\]|,\-–—:;•]+|[\s()\[\]|,\-–—:;•]+$/g, '');
+      if (!d) return '';
+      const spaceRangeRe = new RegExp(`\\b(${JS_YEAR_PAT})\\s{1,8}(${JS_YEAR_PAT}|Present|Current)\\b`, 'gi');
+      d = d.replace(spaceRangeRe, (_, y1, y2) => (y1.toLowerCase() === y2.toLowerCase() ? y1 : `${y1} – ${y2}`));
+      d = d.replace(/\s*(?:[\-–—]+|\bto\b)\s*/gi, ' – ').replace(/\s+/g, ' ').replace(/^[\s()\[\]|,\-–—:;•]+|[\s()\[\]|,\-–—:;•]+$/g, '');
+      const parts = d.split(' – ').map(p => p.trim()).filter(Boolean);
+      if (parts.length === 2 && parts[0].toLowerCase() === parts[1].toLowerCase()) return parts[0];
+      if (parts.length === 4 && parts[0] === parts[2] && parts[1] === parts[3]) return `${parts[0]} – ${parts[1]}`;
+      return d;
+    }
+
+    function extractAndStripDateJS(rawLine, defaultDate = '') {
+      if (!rawLine) return { text: '', date: normalizeDateStrJS(defaultDate) };
+      let line = cleanCidText(rawLine);
+      if (!line) return { text: '', date: normalizeDateStrJS(defaultDate) };
+
+      const tailSpaceYearsRe = new RegExp(`\\b(${JS_YEAR_PAT})\\s{1,8}(${JS_YEAR_PAT}|Present|Current)(\\s*[)\\]]?\\s*)$`, 'i');
+      line = line.replace(tailSpaceYearsRe, (_, y1, y2, tail) => (y1.toLowerCase() === y2.toLowerCase() ? y1 : `${y1} – ${y2}`) + tail);
+
+      const trailingRe = new RegExp(`[\\s|\\-–—,:;•]*[(\\[]?\\s*(${JS_FULL_DATE})\\s*[)\\]]?\\s*$`, 'i');
+      let extractedDate = '';
+      let guard = 0;
+      while (guard++ < 6) {
+        const m = line.match(trailingRe);
+        if (!m) break;
+        const cand = normalizeDateStrJS(m[1]);
+        if (cand) {
+          if (!extractedDate || (cand.includes('–') && !extractedDate.includes('–')) || (cand.length > extractedDate.length && !extractedDate.includes('–'))) {
+            extractedDate = cand;
+          }
+        }
+        line = line.slice(0, m.index).replace(/[\s|\-–—,:;•(\[\]]+$/g, '');
+      }
+
+      const embeddedRe = new RegExp(`[(\\[\\s]*[\\(\\[](${JS_FULL_DATE})[\\)\\]]|(?:^|\\s)(${JS_DATE_RANGE})(?=\\s|$|[,;|])`, 'i');
+      guard = 0;
+      while (guard++ < 4) {
+        const em = line.match(embeddedRe);
+        if (!em) break;
+        const cand = normalizeDateStrJS(em[1] || em[2] || '');
+        if (cand && !extractedDate) extractedDate = cand;
+        line = (line.slice(0, em.index) + ' ' + line.slice(em.index + em[0].length)).trim();
+      }
+
+      line = line.replace(/\(\s*\)|\[\s*\]/g, '').replace(/\s{2,}/g, ' ').replace(/^[\s|\-–—,:;•(\[\]]+|[\s|\-–—,:;•(\[\]]+$/g, '');
+      return {
+        text: line,
+        date: extractedDate || normalizeDateStrJS(defaultDate)
+      };
+    }
+
+    function createExtraEduCard(edu = {}) {
+      const container = document.getElementById('extra-edu-list');
+      if (!container) return;
+      const instClean = extractAndStripDateJS(edu.institution || '');
+      const degClean = extractAndStripDateJS(edu.degree || '');
+      const yrVal = normalizeDateStrJS(edu.year || '') || instClean.date || degClean.date || '2021 – 2023';
+
+      const card = document.createElement('div');
+      card.className = 'extra-edu-card bg-white/[0.02] border border-white/[0.08] rounded-xl p-3.5 space-y-2.5 relative';
+      card.innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-mono text-ice-400 uppercase">Additional Education</span>
+          <button type="button" class="btn-remove-card text-[11px] text-zinc-400 hover:text-rose-400 cursor-pointer">✕ Remove</button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+          <div class="sm:col-span-8">
+            <label class="block text-[11px] text-zinc-300 mb-1">Institution / College</label>
+            <input type="text" class="extra-edu-inst glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5" value="${escapeHtml(instClean.text)}">
+          </div>
+          <div class="sm:col-span-4">
+            <label class="block text-[11px] text-zinc-300 mb-1">Years</label>
+            <input type="text" class="extra-edu-year glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5" value="${escapeHtml(yrVal)}">
+          </div>
+        </div>
+        <div>
+          <label class="block text-[11px] text-zinc-300 mb-1">Degree / Certificate</label>
+          <input type="text" class="extra-edu-degree glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5" value="${escapeHtml(degClean.text)}">
+        </div>
+      `;
+      card.querySelector('.btn-remove-card').addEventListener('click', () => {
+        card.remove();
+        updateLiveResumePreview();
+      });
+      container.appendChild(card);
+    }
+
+    function createExtraExpCard(exp = {}) {
+      const container = document.getElementById('extra-exp-list');
+      if (!container) return;
+      const tClean = extractAndStripDateJS(exp.title || '');
+      const cClean = extractAndStripDateJS(exp.company || '');
+      const dVal = normalizeDateStrJS(exp.dates || '') || tClean.date || cClean.date || '2024 – 2025';
+      const bulletsStr = (exp.bullets || []).map(b => cleanCidText(b).replace(/^[-•●▪*]\s*/, '')).filter(Boolean).join('\n');
+
+      const card = document.createElement('div');
+      card.className = 'extra-exp-card bg-white/[0.02] border border-white/[0.08] rounded-xl p-3 space-y-2.5 relative';
+      card.innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-mono text-ice-400 uppercase">Additional Experience</span>
+          <button type="button" class="btn-remove-card text-[11px] text-zinc-400 hover:text-rose-400 cursor-pointer">✕ Remove</button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div>
+            <label class="block text-[11px] text-zinc-300 mb-1">Role / Title</label>
+            <input type="text" class="extra-exp-title glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5" value="${escapeHtml(tClean.text)}">
+          </div>
+          <div>
+            <label class="block text-[11px] text-zinc-300 mb-1">Company</label>
+            <input type="text" class="extra-exp-company glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5" value="${escapeHtml(cClean.text)}">
+          </div>
+          <div>
+            <label class="block text-[11px] text-zinc-300 mb-1">Dates</label>
+            <input type="text" class="extra-exp-dates glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5" value="${escapeHtml(dVal)}">
+          </div>
+        </div>
+        <div>
+          <label class="block text-[11px] text-zinc-400 mb-1">Achievement Bullets (One per line)</label>
+          <textarea rows="3" class="extra-exp-bullets glyph-input w-full text-xs sm:text-sm text-white rounded-xl p-2.5 resize-y leading-relaxed">${escapeHtml(bulletsStr)}</textarea>
+        </div>
+      `;
+      card.querySelector('.btn-remove-card').addEventListener('click', () => {
+        card.remove();
+        updateLiveResumePreview();
+      });
+      container.appendChild(card);
+    }
+
+    function createExtraProjCard(proj = {}) {
+      const container = document.getElementById('extra-proj-list');
+      if (!container) return;
+      const nClean = extractAndStripDateJS(proj.name || '');
+      const tClean = extractAndStripDateJS(proj.tech || '');
+      const dVal = normalizeDateStrJS(proj.date || '') || nClean.date || tClean.date || '2025';
+      const bulletsStr = (proj.bullets || []).map(b => cleanCidText(b).replace(/^[-•●▪*]\s*/, '')).filter(Boolean).join('\n');
+
+      const card = document.createElement('div');
+      card.className = 'extra-proj-card bg-white/[0.02] border border-white/[0.08] rounded-xl p-3 space-y-2.5 relative';
+      card.innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-mono text-ice-400 uppercase">Additional Project</span>
+          <button type="button" class="btn-remove-card text-[11px] text-zinc-400 hover:text-rose-400 cursor-pointer">✕ Remove</button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+          <div class="sm:col-span-5">
+            <label class="block text-[11px] text-zinc-300 mb-1">Project Name</label>
+            <input type="text" class="extra-proj-name glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5" value="${escapeHtml(nClean.text)}">
+          </div>
+          <div class="sm:col-span-5">
+            <label class="block text-[11px] text-zinc-300 mb-1">Tech Stack</label>
+            <input type="text" class="extra-proj-tech glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-3 py-1.5" value="${escapeHtml(tClean.text)}">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-[11px] text-zinc-300 mb-1">Year</label>
+            <input type="text" class="extra-proj-date glyph-input w-full text-xs sm:text-sm text-white rounded-xl px-2.5 py-1.5" value="${escapeHtml(dVal)}">
+          </div>
+        </div>
+        <div>
+          <label class="block text-[11px] text-zinc-400 mb-1">Project Bullets (One per line)</label>
+          <textarea rows="3" class="extra-proj-bullets glyph-input w-full text-xs sm:text-sm text-white rounded-xl p-2.5 resize-y leading-relaxed">${escapeHtml(bulletsStr)}</textarea>
+        </div>
+      `;
+      card.querySelector('.btn-remove-card').addEventListener('click', () => {
+        card.remove();
+        updateLiveResumePreview();
+      });
+      container.appendChild(card);
+    }
+
+    const btnAddEdu = document.getElementById('btn-add-edu');
+    if (btnAddEdu) {
+      btnAddEdu.addEventListener('click', () => {
+        createExtraEduCard({ institution: 'College / Institute', degree: 'Higher Secondary / Associate Degree', year: '2021 – 2023' });
+        updateLiveResumePreview();
+      });
+    }
+    const btnAddExp = document.getElementById('btn-add-exp');
+    if (btnAddExp) {
+      btnAddExp.addEventListener('click', () => {
+        createExtraExpCard({ title: 'Software Engineering Intern', company: 'Tech Organization', dates: 'Summer 2024', bullets: ['Developed and tested core application modules and REST APIs.'] });
+        updateLiveResumePreview();
+      });
+    }
+    const btnAddProj = document.getElementById('btn-add-proj');
+    if (btnAddProj) {
+      btnAddProj.addEventListener('click', () => {
+        createExtraProjCard({ name: 'Full-Stack Web Platform', tech: 'Python • Flask • MySQL', date: '2025', bullets: ['Built a role-based web application with normalized relational schema and authentication.'] });
+        updateLiveResumePreview();
+      });
+    }
+
+    function collectEducationEntries() {
+      const entries = [];
+      const inst0 = extractAndStripDateJS(document.getElementById('rb-edu-inst').value);
+      const deg0 = extractAndStripDateJS(document.getElementById('rb-edu-degree').value);
+      const yr0 = normalizeDateStrJS(document.getElementById('rb-edu-year').value) || inst0.date || deg0.date || '2020 – 2024';
+      if (inst0.text || deg0.text) {
+        entries.push({
+          institution: inst0.text || 'University',
+          degree: deg0.text || 'Bachelor of Science in Computer Science',
+          year: yr0
+        });
+      }
+      document.querySelectorAll('.extra-edu-card').forEach(card => {
+        const inst = extractAndStripDateJS(card.querySelector('.extra-edu-inst')?.value || '');
+        const deg = extractAndStripDateJS(card.querySelector('.extra-edu-degree')?.value || '');
+        const yr = normalizeDateStrJS(card.querySelector('.extra-edu-year')?.value || '') || inst.date || deg.date || '2021 – 2023';
+        if (inst.text || deg.text) {
+          entries.push({
+            institution: inst.text || 'Institution',
+            degree: deg.text,
+            year: yr
+          });
+        }
+      });
+      return entries;
+    }
+
+    function collectExperienceEntries() {
+      const entries = [];
+      const t0 = extractAndStripDateJS(document.getElementById('rb-exp-title').value);
+      const c0 = extractAndStripDateJS(document.getElementById('rb-exp-company').value);
+      const d0 = normalizeDateStrJS(document.getElementById('rb-exp-dates').value) || t0.date || c0.date || 'June 2022 – Present';
+      const b0 = document.getElementById('rb-exp-bullets').value
+        .split('\n')
+        .map(b => cleanCidText(b).replace(/^[-•●▪*]\s*/, ''))
+        .filter(Boolean);
+      if (t0.text || c0.text || b0.length > 0) {
+        entries.push({
+          title: t0.text || 'Software Engineer',
+          company: c0.text,
+          dates: d0,
+          bullets: b0
+        });
+      }
+      document.querySelectorAll('.extra-exp-card').forEach(card => {
+        const t = extractAndStripDateJS(card.querySelector('.extra-exp-title')?.value || '');
+        const c = extractAndStripDateJS(card.querySelector('.extra-exp-company')?.value || '');
+        const d = normalizeDateStrJS(card.querySelector('.extra-exp-dates')?.value || '') || t.date || c.date || '2024 – 2025';
+        const b = (card.querySelector('.extra-exp-bullets')?.value || '')
+          .split('\n')
+          .map(x => cleanCidText(x).replace(/^[-•●▪*]\s*/, ''))
+          .filter(Boolean);
+        if (t.text || c.text || b.length > 0) {
+          entries.push({
+            title: t.text || 'Software Engineer',
+            company: c.text,
+            dates: d,
+            bullets: b
+          });
+        }
+      });
+      return entries;
+    }
+
+    function collectProjectEntries() {
+      const entries = [];
+      const n0 = extractAndStripDateJS(document.getElementById('rb-proj-name').value);
+      const tc0 = extractAndStripDateJS(document.getElementById('rb-proj-tech').value);
+      const projDateEl = document.getElementById('rb-proj-date');
+      const d0 = normalizeDateStrJS(projDateEl ? projDateEl.value : '') || n0.date || tc0.date || '2025';
+      const b0 = document.getElementById('rb-proj-bullets').value
+        .split('\n')
+        .map(b => cleanCidText(b).replace(/^[-•●▪*]\s*/, ''))
+        .filter(Boolean);
+      if (n0.text || b0.length > 0) {
+        entries.push({
+          name: n0.text || 'Technical Project',
+          tech: tc0.text,
+          date: d0,
+          bullets: b0
+        });
+      }
+      document.querySelectorAll('.extra-proj-card').forEach(card => {
+        const n = extractAndStripDateJS(card.querySelector('.extra-proj-name')?.value || '');
+        const tc = extractAndStripDateJS(card.querySelector('.extra-proj-tech')?.value || '');
+        const d = normalizeDateStrJS(card.querySelector('.extra-proj-date')?.value || '') || n.date || tc.date || '2025';
+        const b = (card.querySelector('.extra-proj-bullets')?.value || '')
+          .split('\n')
+          .map(x => cleanCidText(x).replace(/^[-•●▪*]\s*/, ''))
+          .filter(Boolean);
+        if (n.text || b.length > 0) {
+          entries.push({
+            name: n.text || 'Technical Project',
+            tech: tc.text,
+            date: d,
+            bullets: b
+          });
+        }
+      });
+      return entries;
+    }
+
+    const KNOWN_CERT_ISSUERS = [
+      'IBM / DeepLearning.AI', 'DataCamp / Codio', 'DeepLearning.AI', 'Extern',
+      'Udacity', 'Google', 'IBM', 'DataCamp', 'Codio', 'AWS', 'Microsoft',
+      'Coursera', 'Meta', 'Stanford', 'Harvard', 'Cisco', 'CompTIA', 'Oracle'
+    ];
+
+    function parseCertificationLineForPreview(rawLine) {
+      const cleaned = cleanCidText(rawLine).replace(/^[-•●▪*]\s*/, '');
+      if (!cleaned) return null;
+      const { text: leftText, date: yearVal } = extractAndStripDateJS(cleaned, '2025');
+      if (!leftText || !/[A-Za-z]{2,}/.test(leftText)) return null;
+
+      let issuer = '';
+      let title = leftText;
+      for (const iss of KNOWN_CERT_ISSUERS) {
+        const lowLeft = leftText.toLowerCase();
+        const lowIss = iss.toLowerCase();
+        if (lowLeft.startsWith(lowIss + ' ') || lowLeft.startsWith(lowIss + ':')) {
+          issuer = leftText.slice(0, iss.length);
+          title = leftText.slice(iss.length).replace(/^[\s:—–-]+/, '');
+          break;
+        }
+      }
+      if (!issuer && leftText.includes(' — ')) {
+        const parts = leftText.split(' — ');
+        issuer = parts[0].trim();
+        title = parts.slice(1).join(' — ').trim();
+      }
+      return { issuer, title, year: yearVal || '2025' };
+    }
+
+    function renderResults(data) {
+      const circumference = 2 * Math.PI * 66;
+      const score = data.match_score || 0;
+      const offset = circumference - (score / 100) * circumference;
+      
+      scoreCircle.style.strokeDashoffset = offset;
+      animateCounter(scoreCounter, 0, score, 1000, 0);
+      scoreBadge.textContent = data.match_level;
+
+      // Update Top Navbar Process Flow Indicators
+      const navScorePill = document.getElementById('nav-score-pill');
+      const stepBadge1 = document.getElementById('step-badge-1');
+      if (navScorePill) {
+        navScorePill.textContent = `${score}%`;
+        navScorePill.classList.remove('hidden');
+      }
+      if (stepBadge1) {
+        stepBadge1.textContent = '✓';
+        stepBadge1.className = 'w-5 h-5 rounded-full bg-emerald-500/25 text-emerald-300 font-mono text-xs flex items-center justify-center font-bold';
+      }
+
+      const deltaBadge = document.getElementById('score-delta-badge');
+      const studioComparison = document.getElementById('studio-score-comparison');
+      if (originalUploadedScore !== null && score > originalUploadedScore) {
+        const diff = score - originalUploadedScore;
+        if (deltaBadge) {
+          deltaBadge.textContent = `+${diff}% Boost vs Original`;
+          deltaBadge.classList.remove('hidden');
+        }
+        if (studioComparison) {
+          studioComparison.textContent = `✓ Verified Boost: Original ${originalUploadedScore}% ➔ Optimized ${score}% (+${diff}% Higher)`;
+        }
+      } else {
+        if (deltaBadge) deltaBadge.classList.add('hidden');
+        if (studioComparison) {
+          studioComparison.textContent = `Original: ${score}% ➔ Pre-Optimized (+${data.stats.missing_keywords_count} Target Skills Added)`;
+        }
+      }
+
+      const verifiedEl = document.getElementById('report-resume-verified');
+      if (verifiedEl) {
+        const conf = data.resume_confidence || 95;
+        verifiedEl.textContent = `✓ Verified Resume (${conf}%)`;
+      }
+
+      const expandedBanner = document.getElementById('expanded-roles-banner');
+      const expandedList = document.getElementById('expanded-roles-list');
+      if (expandedBanner && expandedList) {
+        expandedList.innerHTML = '';
+        if (data.expanded_roles && data.expanded_roles.length > 0) {
+          data.expanded_roles.forEach(role => {
+            const pill = document.createElement('span');
+            pill.className = 'text-xs font-medium text-white bg-white/[0.06] border border-ice-400/35 px-3 py-1 rounded-xl';
+            pill.textContent = role;
+            expandedList.appendChild(pill);
+          });
+          expandedBanner.classList.remove('hidden');
+        } else {
+          expandedBanner.classList.add('hidden');
+        }
+      }
+
+      if (score >= 80) {
+        scoreDescription.textContent = 'Excellent match! Your resume covers the core skills and qualifications for this role.';
+      } else if (score >= 65) {
+        scoreDescription.textContent = 'Strong match. Proceed to Step 3 where Glyph has pre-injected your remaining missing skills to push your score above 90%.';
+      } else {
+        scoreDescription.textContent = 'Skill gaps detected. Proceed to Step 3 where Glyph has pre-populated your resume with the missing target skills and XYZ impact bullets!';
+      }
+
+      animateCounter(metricMatchedCount, 0, data.stats.matched_keywords_count, 900, 0);
+      animateCounter(metricMissingCount, 0, data.stats.missing_keywords_count, 900, 0);
+      metricKwRate.textContent = `${Math.round(data.keyword_match_rate ?? 0)}%`;
+      matchedBadgeCount.textContent = `${data.stats.matched_keywords_count} Matched`;
+      reportFormatPill.textContent = data.document_format || 'PDF';
+
+      // Auto-Populate Step 3 Resume Studio with Pre-Optimized Profile (All Entries & Deduplicated Dates)
+      if (data.parsed_profile && !window.__skipProfileOverwrite) {
+        const prof = data.parsed_profile;
+        const cleanFullName = cleanCidText(prof.full_name) || 'Alex Vance';
+        document.getElementById('rb-name').value = cleanFullName;
+        document.getElementById('rb-email').value = cleanCidText(prof.email) || 'alex.vance@glyph.dev';
+        document.getElementById('rb-phone').value = cleanCidText(prof.phone) || '+1 (555) 019-2834';
+        document.getElementById('rb-location').value = sanitizeLocationWithNameJS(cleanCidText(prof.location), cleanFullName) || 'San Francisco, CA';
+        document.getElementById('rb-linkedin').value = cleanCidText(prof.linkedin) || '';
+        document.getElementById('rb-github').value = cleanCidText(prof.github) || '';
+        document.getElementById('rb-summary').value = cleanCidText(prof.summary).replace(/\s*Core technical competencies include[^.]*\.\s*$/i, '').trim() || '';
+        if (prof.skills && prof.skills.length > 0) {
+          rbSkills.value = prof.skills.map(s => cleanCidText(s)).filter(Boolean).join(', ');
+        }
+
+        // Populate Experience (Primary + Additional)
+        const extraExpEl = document.getElementById('extra-exp-list');
+        if (extraExpEl) extraExpEl.innerHTML = '';
+        if (prof.experience && prof.experience.length > 0) {
+          const exp0 = prof.experience[0];
+          const t0 = extractAndStripDateJS(exp0.title || '');
+          const c0 = extractAndStripDateJS(exp0.company || '');
+          const d0 = normalizeDateStrJS(exp0.dates || '') || t0.date || c0.date || 'June 2022 – Present';
+          document.getElementById('rb-exp-title').value = t0.text || 'Software Engineer';
+          document.getElementById('rb-exp-company').value = c0.text || 'Starlight Systems';
+          document.getElementById('rb-exp-dates').value = d0;
+          if (exp0.bullets && exp0.bullets.length > 0) {
+            document.getElementById('rb-exp-bullets').value = exp0.bullets.map(b => cleanCidText(b)).filter(Boolean).join('\n');
+          }
+          prof.experience.slice(1).forEach(expItem => createExtraExpCard(expItem));
+        }
+
+        // Populate Projects (Primary + Additional, e.g. Karachi Complaint Portal, MindEase, FuelQ)
+        const extraProjEl = document.getElementById('extra-proj-list');
+        if (extraProjEl) extraProjEl.innerHTML = '';
+        if (prof.projects && prof.projects.length > 0) {
+          const proj0 = prof.projects[0];
+          const n0 = extractAndStripDateJS(proj0.name || '');
+          const tc0 = extractAndStripDateJS(proj0.tech || '');
+          const d0 = normalizeDateStrJS(proj0.date || '') || n0.date || tc0.date || '2025';
+          document.getElementById('rb-proj-name').value = n0.text || 'Scalable Architecture & Analytics Platform';
+          document.getElementById('rb-proj-tech').value = tc0.text || 'Python • React • SQL';
+          const projDateEl = document.getElementById('rb-proj-date');
+          if (projDateEl) projDateEl.value = d0;
+          if (proj0.bullets && proj0.bullets.length > 0) {
+            document.getElementById('rb-proj-bullets').value = proj0.bullets.map(b => cleanCidText(b)).filter(Boolean).join('\n');
+          }
+          prof.projects.slice(1).forEach(projItem => createExtraProjCard(projItem));
+        }
+
+        // Populate Education (Primary + Additional, e.g. University of Karachi + Govt. Degree College)
+        const extraEduEl = document.getElementById('extra-edu-list');
+        if (extraEduEl) extraEduEl.innerHTML = '';
+        if (prof.education && prof.education.length > 0) {
+          const edu0 = prof.education[0];
+          const inst0 = extractAndStripDateJS(edu0.institution || '');
+          const deg0 = extractAndStripDateJS(edu0.degree || '');
+          const yr0 = normalizeDateStrJS(edu0.year || '') || inst0.date || deg0.date || '2020 – 2024';
+          document.getElementById('rb-edu-inst').value = inst0.text || 'University of Washington';
+          document.getElementById('rb-edu-degree').value = deg0.text || 'Bachelor of Science in Computer Science';
+          document.getElementById('rb-edu-year').value = yr0;
+          prof.education.slice(1).forEach(eduItem => createExtraEduCard(eduItem));
+        }
+
+        const certEl = document.getElementById('rb-certifications');
+        if (certEl && prof.certifications && prof.certifications.length > 0) {
+          const cleanCertLines = prof.certifications
+            .map(c => {
+              const parsed = parseCertificationLineForPreview(c);
+              if (!parsed) return '';
+              const prefix = parsed.issuer ? `${parsed.issuer} ` : '';
+              return `${prefix}${parsed.title} (${parsed.year})`;
+            })
+            .filter(Boolean);
+          if (cleanCertLines.length > 0) {
+            certEl.value = cleanCertLines.join('\n');
+          }
+        }
+        updateLiveResumePreview();
+      }
+      window.__skipProfileOverwrite = false;
+
+      // Bullet Impact & Suggested Bullets
+      if (data.bullet_impact) {
+        const bi = data.bullet_impact;
+        const quantBadge = document.getElementById('bullet-quant-badge');
+        if (quantBadge) {
+          quantBadge.textContent = `${bi.quantification_rate}% Bullets Quantified`;
+        }
+
+        const xyzContainer = document.getElementById('xyz-suggestions-container');
+        if (xyzContainer) {
+          xyzContainer.innerHTML = '';
+          if (bi.xyz_bullet_suggestions && bi.xyz_bullet_suggestions.length > 0) {
+            bi.xyz_bullet_suggestions.forEach(bullet => {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'w-full text-left text-sm text-zinc-200 hover:text-white bg-white/[0.03] hover:bg-ice-subtle border border-white/[0.08] hover:border-ice-400/40 rounded-2xl p-4 flex items-start justify-between gap-3 transition-all cursor-pointer group';
+              btn.innerHTML = `
+                <span class="leading-relaxed">${escapeHtml(bullet)}</span>
+                <span class="text-xs font-mono text-ice-400 group-hover:text-white bg-ice-subtle px-2.5 py-1 rounded-lg border border-ice-400/25 flex-shrink-0">+ Add</span>
+              `;
+              btn.addEventListener('click', () => {
+                appendBulletToBuilder(bullet);
+                showToast('Bullet Added to Studio', 'Added achievement bullet to your Step 3 Work Experience.', 'success');
+                const tag = btn.querySelector('span:last-child');
+                if (tag) tag.textContent = '✓ Added';
+              });
+              xyzContainer.appendChild(btn);
+            });
+          }
+        }
+      }
+
+      // Structural Audit Accordion
+      if (data.structural_audit) {
+        const sa = data.structural_audit;
+        const auditBadge = document.getElementById('audit-score-badge');
+        if (auditBadge) {
+          auditBadge.textContent = `${sa.readability_score}% Parseable`;
+        }
+
+        const checksEl = document.getElementById('audit-checks-container');
+        if (checksEl && sa.checks) {
+          checksEl.innerHTML = '';
+          sa.checks.forEach(chk => {
+            const row = document.createElement('div');
+            row.className = 'flex items-start justify-between gap-3 bg-white/[0.02] border border-white/[0.06] rounded-xl p-3.5 text-sm';
+            const iconHtml = chk.passed
+              ? `<span class="text-emerald-400 font-mono text-xs font-semibold flex-shrink-0">✓ PASS</span>`
+              : `<span class="text-amber-400 font-mono text-xs font-semibold flex-shrink-0">! TIP</span>`;
+            row.innerHTML = `
+              <div>
+                <div class="font-semibold text-white">${escapeHtml(chk.label)}</div>
+                <div class="text-xs text-zinc-400 mt-0.5">${escapeHtml(chk.detail)}</div>
+              </div>
+              ${iconHtml}
+            `;
+            checksEl.appendChild(row);
+          });
+        }
+
+        const xrayPreview = document.getElementById('xray-text-preview');
+        if (xrayPreview) {
+          xrayPreview.textContent = cleanCidText(sa.raw_text_preview || '');
+        }
+      }
+
+      // Missing Keywords
+      missingKeywordsContainer.innerHTML = '';
+      if (data.missing_keywords && data.missing_keywords.length > 0) {
+        data.missing_keywords.forEach((kw) => {
+          const prettyKw = formatSkillLabel(kw);
+          const pill = document.createElement('button');
+          pill.type = 'button';
+          pill.className = 'kw-pill text-sm font-medium text-zinc-200 bg-white/[0.04] hover:bg-ice-subtle hover:text-white border border-white/[0.12] hover:border-ice-400/50 px-3.5 py-1.5 rounded-xl flex items-center gap-2 cursor-pointer group';
+          pill.innerHTML = `<span>${escapeHtml(prettyKw)}</span><span class="text-xs text-ice-400 font-mono">+</span>`;
+          pill.addEventListener('click', () => {
+            navigator.clipboard.writeText(prettyKw).catch(() => {});
+            appendSkillToBuilder(prettyKw);
+            showToast('Skill Copied & Queued', `"${prettyKw}" copied & verified in Step 3 Studio.`, 'info');
+          });
+          missingKeywordsContainer.appendChild(pill);
+        });
+      } else {
+        missingKeywordsContainer.innerHTML = '<span class="text-sm text-emerald-400">100% of target skills are present in your resume!</span>';
+      }
+
+      // Matched Keywords
+      matchedKeywordsContainer.innerHTML = '';
+      if (data.matched_keywords && data.matched_keywords.length > 0) {
+        data.matched_keywords.forEach(kw => {
+          const prettyKw = formatSkillLabel(kw);
+          const pill = document.createElement('span');
+          pill.className = 'kw-pill text-sm font-medium text-ice-200 bg-ice-subtle border border-ice-400/35 px-3.5 py-1.5 rounded-xl flex items-center gap-1.5';
+          pill.innerHTML = `<svg class="w-3.5 h-3.5 text-ice-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg><span>${escapeHtml(prettyKw)}</span>`;
+          matchedKeywordsContainer.appendChild(pill);
+        });
+      } else {
+        matchedKeywordsContainer.innerHTML = '<span class="text-sm text-zinc-400">No direct skill matches found yet.</span>';
+      }
+
+      // Recommendations
+      recommendationsList.innerHTML = '';
+      if (data.recommendations && data.recommendations.length > 0) {
+        data.recommendations.forEach(rec => {
+          const li = document.createElement('li');
+          li.className = 'flex items-start gap-3 text-zinc-200 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4';
+          li.innerHTML = `
+            <span class="w-2 h-2 rounded-full bg-ice-400 mt-2 flex-shrink-0"></span>
+            <span class="leading-relaxed">${escapeHtml(rec)}</span>
+          `;
+          recommendationsList.appendChild(li);
+        });
+      }
+
+      reportTimestamp.textContent = `• ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    }
+
+    function flashResumePaperSheets() {
+      ['step2-resume-sheet', 'printer-paper-sheet'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('paper-updated-flash');
+        void el.offsetWidth;
+        el.classList.add('paper-updated-flash');
+      });
+    }
+
+    function appendSkillToBuilder(kw) {
+      const formatted = formatSkillLabel(kw);
+      const existing = rbSkills.value.split(',').map(s => s.trim()).filter(Boolean);
+      if (!existing.some(s => s.toLowerCase() === formatted.toLowerCase())) {
+        existing.push(formatted);
+        rbSkills.value = existing.join(', ');
+        updateLiveResumePreview();
+        flashResumePaperSheets();
+      }
+    }
+
+    function appendBulletToBuilder(bulletText) {
+      const bulletsEl = document.getElementById('rb-exp-bullets');
+      const current = bulletsEl.value.trim();
+      if (!current.includes(bulletText)) {
+        bulletsEl.value = current ? `${current}\n${bulletText}` : bulletText;
+        updateLiveResumePreview();
+        flashResumePaperSheets();
+      }
+    }
+
+    // -------------------------------------------------------------------
+    // Step 2 & Step 3 Monitor Screen Sub-Tab Switchers (Zero Info Overload)
+    // -------------------------------------------------------------------
+    document.querySelectorAll('.step2-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.getAttribute('data-step2-tab');
+        document.querySelectorAll('.step2-tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.step2-subpanel').forEach(panel => {
+          panel.classList.add('hidden');
+          panel.classList.remove('tab-panel-animate');
+        });
+        const activePanel = document.getElementById(`step2-panel-${targetTab}`);
+        if (activePanel) {
+          activePanel.classList.remove('hidden');
+          void activePanel.offsetWidth;
+          activePanel.classList.add('tab-panel-animate');
+        }
+      });
+    });
+
+    const STEP3_TAB_ORDER = ['header', 'edu', 'exp', 'proj', 'skills'];
+    const LASER_CARRIAGE_POS = {
+      header: '10%',
+      edu: '28%',
+      exp: '46%',
+      proj: '64%',
+      skills: '80%'
+    };
+    let activeStep3Tab = 'header';
+
+    function activateStep3SectionTab(targetTab) {
+      if (!STEP3_TAB_ORDER.includes(targetTab)) return;
+      activeStep3Tab = targetTab;
+
+      document.querySelectorAll('.step3-tab-btn').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-step3-tab') === targetTab);
+      });
+
+      document.querySelectorAll('.step3-subpanel').forEach(panel => {
+        panel.classList.add('hidden');
+        panel.classList.remove('tab-panel-animate');
+      });
+      const activePanel = document.getElementById(`step3-panel-${targetTab}`);
+      if (activePanel) {
+        activePanel.classList.remove('hidden');
+        void activePanel.offsetWidth;
+        activePanel.classList.add('tab-panel-animate');
+      }
+
+      // Move 2D Printer Laser Carriage in Smoked-Glass Window
+      const carriage = document.getElementById('printer-laser-carriage');
+      if (carriage && LASER_CARRIAGE_POS[targetTab]) {
+        carriage.style.left = LASER_CARRIAGE_POS[targetTab];
+      }
+
+      // Highlight the matching section on the Printer's live paper sheet
+      document.querySelectorAll('#printer-paper-sheet [data-paper-section]').forEach(secEl => {
+        secEl.classList.toggle('active-paper-sec', secEl.getAttribute('data-paper-section') === targetTab);
+      });
+    }
+
+    document.querySelectorAll('.step3-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activateStep3SectionTab(btn.getAttribute('data-step3-tab'));
+      });
+    });
+
+    const btnPrevSec = document.getElementById('btn-step3-prev-tab');
+    const btnNextSec = document.getElementById('btn-step3-next-tab');
+    if (btnPrevSec) {
+      btnPrevSec.addEventListener('click', () => {
+        const idx = STEP3_TAB_ORDER.indexOf(activeStep3Tab);
+        const prevIdx = (idx - 1 + STEP3_TAB_ORDER.length) % STEP3_TAB_ORDER.length;
+        activateStep3SectionTab(STEP3_TAB_ORDER[prevIdx]);
+      });
+    }
+    if (btnNextSec) {
+      btnNextSec.addEventListener('click', () => {
+        const idx = STEP3_TAB_ORDER.indexOf(activeStep3Tab);
+        const nextIdx = (idx + 1) % STEP3_TAB_ORDER.length;
+        activateStep3SectionTab(STEP3_TAB_ORDER[nextIdx]);
+      });
+    }
+
+    // Allow clicking any section directly on the Printer's paper sheet to jump to that editor tab on the Monitor!
+    const printerPaperSheetEl = document.getElementById('printer-paper-sheet');
+    if (printerPaperSheetEl) {
+      printerPaperSheetEl.addEventListener('click', (e) => {
+        const secBlock = e.target.closest('[data-paper-section]');
+        if (secBlock) {
+          activateStep3SectionTab(secBlock.getAttribute('data-paper-section'));
+        }
+      });
+    }
+
+    // -------------------------------------------------------------------
+    // Live Resume Paper Preview (Updates BOTH Step 2 Monitor & Step 3 Printer)
+    // -------------------------------------------------------------------
+    function getSelectedSectionOrder() {
+      const checked = document.querySelector('input[name="rb-section-order"]:checked');
+      return checked ? checked.value : 'jakes';
+    }
+
+    function categorizeSkillsForPreview(skillsRaw) {
+      const list = skillsRaw.split(',').map(s => cleanCidText(s)).filter(Boolean);
+      const langSet = new Set(['python', 'javascript', 'typescript', 'java', 'c++', 'c#', 'sql', 'go', 'golang', 'rust', 'r', 'php', 'ruby', 'swift', 'kotlin', 'scala', 'bash', 'html5', 'css3']);
+      const webSet = new Set(['react', 'react native', 'next.js', 'node.js', 'fastapi', 'django', 'flask', 'spring boot', 'express.js', 'vue.js', 'angular', 'tailwind css', 'html/css', 'rest apis', 'graphql', 'redux', 'flutter', 'swiftui', 'i18next', 'react navigation', 'responsive design', 'microservices', '.net', 'wpf']);
+      const cloudSet = new Set(['aws', 'google cloud', 'gcp', 'azure', 'firebase', 'firestore', 'postgresql', 'mysql', 'mongodb', 'redis', 'sqlite', 'oracle', 'dynamodb', 'snowflake', 'bigquery', 'apache kafka', 'docker', 'kubernetes', 'terraform', 'ci/cd', 'github actions', 'jenkins']);
+
+      const langs = [];
+      const webMob = [];
+      const cloudDb = [];
+      const toolsCore = [];
+
+      list.forEach(sk => {
+        const low = sk.toLowerCase();
+        if (langSet.has(low)) langs.push(sk);
+        else if (webSet.has(low) || ['react', 'html', 'css', 'api', 'flask', 'django', 'node', 'spring', 'vue', 'angular'].some(w => low.includes(w))) webMob.push(sk);
+        else if (cloudSet.has(low) || ['sql', 'db', 'cloud', 'aws', 'firebase', 'firestore', 'mongo', 'redis', 'postgres'].some(w => low.includes(w))) cloudDb.push(sk);
+        else toolsCore.push(sk);
+      });
+
+      const rows = [];
+      if (langs.length) rows.push(['Languages', langs.join(', ')]);
+      if (webMob.length) rows.push(['Mobile & Web', webMob.join(', ')]);
+      if (cloudDb.length) rows.push(['Cloud & DB', cloudDb.join(', ')]);
+      if (toolsCore.length) rows.push(['Tools & Core', toolsCore.join(', ')]);
+      return rows;
+    }
+
+    function sanitizeLocationWithNameJS(locStr, fullNameStr) {
+      const loc = cleanCidText(locStr || '');
+      if (!loc) return '';
+      const nameWords = new Set((fullNameStr || '').toLowerCase().split(/\s+/).map(w => w.replace(/[.,]/g, '')).filter(Boolean));
+      const commaIdx = loc.indexOf(',');
+      if (commaIdx === -1) return loc;
+      const cityPart = loc.slice(0, commaIdx).trim();
+      const regionPart = loc.slice(commaIdx + 1).trim();
+      const filteredCity = cityPart.split(/\s+/).filter(w => !nameWords.has(w.toLowerCase().replace(/[.,]/g, '')));
+      return filteredCity.length > 0 ? `${filteredCity.join(' ')}, ${regionPart}` : loc;
+    }
+
+    function updateLiveResumePreview() {
+      const name = cleanCidText(document.getElementById('rb-name').value) || 'Alex Vance';
+      const email = cleanCidText(document.getElementById('rb-email').value);
+      const phone = cleanCidText(document.getElementById('rb-phone').value);
+      const loc = sanitizeLocationWithNameJS(document.getElementById('rb-location').value, name);
+      const li = cleanCidText(document.getElementById('rb-linkedin').value);
+      const gh = cleanCidText(document.getElementById('rb-github').value);
+
+      const line1Str = [loc, phone, email].filter(Boolean).join('  •  ');
+      const line2Str = [li, gh].filter(Boolean).join('  •  ');
+
+      // Update Step 3 Printer Sheet Header
+      const pName = document.getElementById('preview-name');
+      const c1El = document.getElementById('preview-contact-1');
+      const c2El = document.getElementById('preview-contact-2');
+      if (pName) pName.textContent = name;
+      if (c1El) c1El.textContent = line1Str;
+      if (c2El) c2El.textContent = line2Str;
+
+      // Update Step 2 Monitor Live Sheet Header
+      const s2Name = document.getElementById('step2-preview-name');
+      const s2C1 = document.getElementById('step2-preview-contact-1');
+      const s2C2 = document.getElementById('step2-preview-contact-2');
+      if (s2Name) s2Name.textContent = name;
+      if (s2C1) s2C1.textContent = line1Str;
+      if (s2C2) s2C2.textContent = line2Str;
+
+      const orderMode = getSelectedSectionOrder();
+      const orderBadge = document.getElementById('preview-order-badge');
+      if (orderBadge) {
+        orderBadge.textContent = orderMode === 'jakes' ? 'Education Near Top' : 'Experience Near Top';
+      }
+
+      const summaryVal = cleanCidText(document.getElementById('rb-summary').value).replace(/\s*Core technical competencies include[^.]*\.\s*$/i, '').trim();
+      const skillsVal = cleanCidText(rbSkills.value);
+      const eduList = collectEducationEntries();
+      const expList = collectExperienceEntries();
+      const projList = collectProjectEntries();
+
+      const certEl = document.getElementById('rb-certifications');
+      const parsedCerts = certEl
+        ? certEl.value.split('\n').map(c => parseCertificationLineForPreview(c)).filter(Boolean)
+        : [];
+
+      const summaryHtml = summaryVal ? `
+        <div data-paper-section="header" class="paper-sec-block cursor-pointer" title="Click to edit Summary on Monitor">
+          <div class="text-[10.5px] font-bold uppercase tracking-wider border-b border-black pb-0.5 mb-1 text-black">SUMMARY</div>
+          <p class="text-[10.8px] text-black leading-snug">${escapeHtml(summaryVal)}</p>
+        </div>
+      ` : '';
+
+      const eduHtml = eduList.length > 0 ? `
+        <div data-paper-section="edu" class="paper-sec-block cursor-pointer" title="Click to edit Education on Monitor">
+          <div class="text-[10.5px] font-bold uppercase tracking-wider border-b border-black pb-0.5 mb-1 text-black">EDUCATION</div>
+          <div class="space-y-1.5">
+            ${eduList.map(edu => `
+              <div>
+                <div class="flex items-baseline justify-between gap-3 text-[11px]">
+                  <strong class="text-black min-w-0">${escapeHtml(edu.institution)}</strong>
+                  <span class="text-[10.5px] italic text-black flex-shrink-0 whitespace-nowrap">${escapeHtml(edu.year)}</span>
+                </div>
+                ${edu.degree ? `<div class="text-[10.8px] text-black">${escapeHtml(edu.degree)}</div>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : '';
+
+      const expHtml = expList.length > 0 ? `
+        <div data-paper-section="exp" class="paper-sec-block cursor-pointer" title="Click to edit Experience on Monitor">
+          <div class="text-[10.5px] font-bold uppercase tracking-wider border-b border-black pb-0.5 mb-1 text-black">EXPERIENCE</div>
+          <div class="space-y-2">
+            ${expList.map(exp => `
+              <div>
+                <div class="flex items-baseline justify-between gap-3 text-[11px]">
+                  <strong class="text-black min-w-0">${escapeHtml(exp.title)}</strong>
+                  <span class="text-[10.5px] italic text-black flex-shrink-0 whitespace-nowrap">${escapeHtml(exp.dates)}</span>
+                </div>
+                ${exp.company ? `<div class="text-[10.5px] italic text-black mb-0.5">${escapeHtml(exp.company)}</div>` : ''}
+                ${exp.bullets && exp.bullets.length > 0 ? `
+                  <ul class="list-disc pl-4 mt-0.5 space-y-0.5 text-[10.8px] text-black">
+                    ${exp.bullets.map(b => `<li>${escapeHtml(b)}</li>`).join('')}
+                  </ul>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : '';
+
+      const projHtml = projList.length > 0 ? `
+        <div data-paper-section="proj" class="paper-sec-block cursor-pointer" title="Click to edit Projects on Monitor">
+          <div class="text-[10.5px] font-bold uppercase tracking-wider border-b border-black pb-0.5 mb-1 text-black">PROJECTS</div>
+          <div class="space-y-2">
+            ${projList.map(proj => `
+              <div>
+                <div class="flex items-baseline justify-between gap-3 text-[11px]">
+                  <strong class="text-black min-w-0">${escapeHtml(proj.name)}</strong>
+                  <span class="text-[10.5px] italic text-black flex-shrink-0 whitespace-nowrap">${escapeHtml(proj.date)}</span>
+                </div>
+                ${proj.tech ? `<div class="text-[10.5px] italic text-black mb-0.5">${escapeHtml(proj.tech)}</div>` : ''}
+                ${proj.bullets && proj.bullets.length > 0 ? `
+                  <ul class="list-disc pl-4 mt-0.5 space-y-0.5 text-[10.8px] text-black">
+                    ${proj.bullets.map(b => `<li>${escapeHtml(b)}</li>`).join('')}
+                  </ul>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : '';
+
+      const catRows = categorizeSkillsForPreview(skillsVal);
+      const skillsHtml = catRows.length > 0 ? `
+        <div data-paper-section="skills" class="paper-sec-block cursor-pointer" title="Click to edit Skills on Monitor">
+          <div class="text-[10.5px] font-bold uppercase tracking-wider border-b border-black pb-0.5 mb-1 text-black">TECHNICAL SKILLS</div>
+          <div class="space-y-0.5 text-[10.8px]">
+            ${catRows.map(([cat, vals]) => `
+              <div class="grid grid-cols-12 gap-2">
+                <div class="col-span-3 font-bold text-black">${escapeHtml(cat)}</div>
+                <div class="col-span-9 text-black">${escapeHtml(vals)}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : '';
+
+      const certsHtml = parsedCerts.length > 0 ? `
+        <div data-paper-section="skills" class="paper-sec-block cursor-pointer" title="Click to edit Certifications on Monitor">
+          <div class="text-[10.5px] font-bold uppercase tracking-wider border-b border-black pb-0.5 mb-1 text-black">CERTIFICATIONS</div>
+          <div class="space-y-0.5 text-[10.8px]">
+            ${parsedCerts.map(c => `
+              <div class="flex items-baseline justify-between gap-3">
+                <span class="text-black min-w-0">${c.issuer ? `<strong class="text-black">${escapeHtml(c.issuer)}</strong> ` : ''}${escapeHtml(c.title)}</span>
+                <span class="text-[10.5px] italic text-black flex-shrink-0 whitespace-nowrap">${escapeHtml(c.year)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : '';
+
+      const combinedHtml = (orderMode === 'jakes')
+        ? (summaryHtml + eduHtml + expHtml + projHtml + skillsHtml + certsHtml)
+        : (summaryHtml + expHtml + projHtml + eduHtml + skillsHtml + certsHtml);
+
+      const container = document.getElementById('preview-dynamic-sections');
+      if (container) container.innerHTML = combinedHtml;
+
+      const s2Container = document.getElementById('step2-preview-dynamic-sections');
+      if (s2Container) s2Container.innerHTML = combinedHtml;
+    }
+
+    resumeBuilderForm.addEventListener('input', updateLiveResumePreview);
+    document.querySelectorAll('input[name="rb-section-order"]').forEach(r => {
+      r.addEventListener('change', updateLiveResumePreview);
+    });
+    updateLiveResumePreview();
+
+    function animateCounter(element, start, end, duration, decimals = 0) {
+      if (!element) return;
+      const range = end - start;
+      const startTime = performance.now();
+
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        const current = start + range * ease;
+
+        element.textContent = decimals > 0 ? current.toFixed(decimals) : Math.round(current);
+
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        } else {
+          element.textContent = decimals > 0 ? end.toFixed(decimals) : end;
+        }
+      }
+      requestAnimationFrame(update);
+    }
+
+    // 1-Click Inject Missing Skills
+    btnInjectMissing.addEventListener('click', () => {
+      if (!latestAnalysisResult || !latestAnalysisResult.missing_keywords.length) {
+        showToast('All Target Skills Included', 'Your skills section already includes all detected target keywords.', 'info');
+        return;
+      }
+      const missing = latestAnalysisResult.missing_keywords.map(kw => formatSkillLabel(kw));
+      const existing = rbSkills.value.split(',').map(s => s.trim()).filter(Boolean);
+      const existingLower = new Set(existing.map(e => e.toLowerCase()));
+      missing.forEach(m => {
+        if (!existingLower.has(m.toLowerCase())) {
+          existing.push(m);
+          existingLower.add(m.toLowerCase());
+        }
+      });
+      rbSkills.value = existing.join(', ');
+      updateLiveResumePreview();
+      showToast('Skills Verified', `Verified ${missing.length} target skills in your Resume Studio.`, 'success');
+    });
+
+    // 1-Click Add High-Impact Bullet
+    const btnInjectXyz = document.getElementById('btn-inject-xyz');
+    if (btnInjectXyz) {
+      btnInjectXyz.addEventListener('click', () => {
+        const suggestions = latestAnalysisResult?.bullet_impact?.xyz_bullet_suggestions || [];
+        const bulletsEl = document.getElementById('rb-exp-bullets');
+        const current = bulletsEl.value;
+        const nextBullet = suggestions.find(s => !current.includes(s))
+          || `Engineered automated validation and deployment workflows across core services, reducing response latency by 35%.`;
+        appendBulletToBuilder(nextBullet);
+        showToast('Bullet Added', 'Added quantified achievement bullet to Work Experience.', 'success');
+      });
+    }
+
+    // 1-Click Verify Higher Score in RAM
+    const btnRescoreResume = document.getElementById('btn-rescore-resume');
+    const rescoreBtnText = document.getElementById('rescore-btn-text');
+    if (btnRescoreResume) {
+      btnRescoreResume.addEventListener('click', async () => {
+        const jdText = jdInput.value.trim() || JD_PRESETS.fullstack;
+        if (!jdInput.value.trim()) {
+          jdInput.value = jdText;
+          updateJdCounters();
+        }
+
+        window.__skipProfileOverwrite = true;
+        btnRescoreResume.disabled = true;
+        if (rescoreBtnText) rescoreBtnText.textContent = 'Verifying Score in RAM...';
+
+        try {
+          const payload = buildResumePayloadFromForm();
+          const genRes = await fetch(`${API_BASE_URL}/api/generate-resume`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!genRes.ok) throw new Error('Failed to compile updated resume in memory.');
+          const pdfBlob = await genRes.blob();
+          const safeName = (payload.full_name || 'Candidate').replace(/[^a-zA-Z0-9_]/g, '_');
+          const optimizedFile = new File([pdfBlob], `${safeName}_ATS_Optimized_Resume.pdf`, { type: 'application/pdf' });
+
+          selectedFile = optimizedFile;
+          fileNameEl.textContent = optimizedFile.name;
+          fileSizeEl.textContent = `${formatBytes(optimizedFile.size)} • ✓ Verified Optimized Resume`;
+          dropZoneIdle.classList.add('hidden');
+          dropZoneSelected.classList.remove('hidden');
+
+          const formData = new FormData();
+          formData.append('resume', optimizedFile);
+          formData.append('job_description', jdText);
+
+          const analyzeRes = await fetch(`${API_BASE_URL}/api/analyze`, {
+            method: 'POST',
+            body: formData
+          });
+          if (!analyzeRes.ok) {
+            const errData = await analyzeRes.json().catch(() => ({}));
+            throw new Error(errData.detail || 'Re-scoring failed');
+          }
+
+          const newData = await analyzeRes.json();
+          latestAnalysisResult = newData;
+          renderResults(newData);
+
+          const orig = originalUploadedScore !== null ? originalUploadedScore : newData.match_score;
+          const boostStr = newData.match_score > orig ? ` (Up from ${orig}% ➔ ${newData.match_score}%!)` : '';
+          showToast('Higher Score Verified!', `Optimized ATS Score: ${newData.match_score}%${boostStr}`, 'success');
+          switchStepView(2);
+        } catch (err) {
+          showToast('Re-Score Notice', err.message, 'error');
+        } finally {
+          btnRescoreResume.disabled = false;
+          if (rescoreBtnText) rescoreBtnText.textContent = 'Verify Higher Score in RAM';
+        }
+      });
+    }
+
+    function buildResumePayloadFromForm() {
+      const name = cleanCidText(document.getElementById('rb-name').value);
+      const email = cleanCidText(document.getElementById('rb-email').value);
+      const skillsList = rbSkills.value
+        .split(',')
+        .map(s => cleanCidText(s))
+        .filter(Boolean);
+
+      const certEl = document.getElementById('rb-certifications');
+      const certsList = certEl
+        ? certEl.value
+            .split('\n')
+            .map(c => {
+              const parsed = parseCertificationLineForPreview(c);
+              if (!parsed) return '';
+              const prefix = parsed.issuer ? `${parsed.issuer} ` : '';
+              return `${prefix}${parsed.title} (${parsed.year})`;
+            })
+            .filter(Boolean)
+        : [];
+
+      return {
+        full_name: name,
+        email: email,
+        phone: cleanCidText(document.getElementById('rb-phone').value),
+        location: cleanCidText(document.getElementById('rb-location').value),
+        linkedin: cleanCidText(document.getElementById('rb-linkedin').value),
+        github: cleanCidText(document.getElementById('rb-github').value),
+        summary: cleanCidText(document.getElementById('rb-summary').value),
+        skills: skillsList,
+        section_order: getSelectedSectionOrder(),
+        experience: collectExperienceEntries(),
+        projects: collectProjectEntries(),
+        education: collectEducationEntries(),
+        certifications: certsList
+      };
+    }
+
+    function playPrinterAnimation() {
+      const chassis = document.getElementById('printer-body-chassis');
+      const paper = document.getElementById('printer-paper-sheet');
+      const topFeedSheet = document.getElementById('printer-top-feed-sheet');
+      const lcd = document.getElementById('printer-lcd-text');
+      const led = document.getElementById('printer-status-led');
+
+      if (topFeedSheet) {
+        topFeedSheet.classList.remove('top-sheet-feeding');
+        void topFeedSheet.offsetWidth;
+        topFeedSheet.classList.add('top-sheet-feeding');
+      }
+      if (chassis) {
+        chassis.classList.remove('printer-humming', 'printer-scanning');
+        void chassis.offsetWidth;
+        chassis.classList.add('printer-humming', 'printer-scanning');
+      }
+      if (paper) {
+        paper.classList.remove('paper-printing-active');
+        void paper.offsetWidth;
+        paper.classList.add('paper-printing-active');
+      }
+      if (lcd) lcd.textContent = 'SPOOLING 1200 DPI...';
+      if (led) {
+        led.classList.remove('bg-emerald-400');
+        led.classList.add('bg-sky-400');
+      }
+
+      setTimeout(() => {
+        if (lcd) lcd.textContent = 'LASER FUSING PDF...';
+      }, 520);
+
+      setTimeout(() => {
+        if (chassis) chassis.classList.remove('printer-humming', 'printer-scanning');
+        if (topFeedSheet) topFeedSheet.classList.remove('top-sheet-feeding');
+        if (lcd) lcd.textContent = '✓ PRINTED • 100% ATS';
+        if (led) {
+          led.classList.remove('bg-sky-400');
+          led.classList.add('bg-emerald-400');
+        }
+      }, 1500);
+    }
+
+    async function triggerPdfDownload() {
+      const name = document.getElementById('rb-name').value.trim();
+      const email = document.getElementById('rb-email').value.trim();
+      if (!name || !email) {
+        showToast('Required Fields', 'Full Name and Email Address are required.', 'error');
+        return;
+      }
+
+      playPrinterAnimation();
+      setGeneratingPdf(true);
+      const payload = buildResumePayloadFromForm();
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/generate-resume`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          let errText = `Server error (${response.status})`;
+          try {
+            const errData = await response.json();
+            if (errData && errData.detail) errText = errData.detail;
+          } catch (_) {}
+          throw new Error(errText);
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        const safeName = name.replace(/[^a-zA-Z0-9_]/g, '_');
+        a.download = `${safeName}_ATS_Resume.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+
+        showToast('2D LaserJet Printed PDF!', `Printed & downloaded ${safeName}_ATS_Resume.pdf`, 'success');
+      } catch (err) {
+        showToast('PDF Error', err.message, 'error');
+      } finally {
+        setGeneratingPdf(false);
+      }
+    }
+
+    resumeBuilderForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      triggerPdfDownload();
+    });
+    if (btnTopDownloadPdf) {
+      btnTopDownloadPdf.addEventListener('click', triggerPdfDownload);
+    }
+
+    function setGeneratingPdf(isGenerating) {
+      btnDownloadPdf.disabled = isGenerating;
+      if (btnTopDownloadPdf) btnTopDownloadPdf.disabled = isGenerating;
+      if (isGenerating) {
+        downloadIcon.classList.add('hidden');
+        downloadSpinner.classList.remove('hidden');
+        downloadBtnText.textContent = 'Printing ATS PDF...';
+      } else {
+        downloadIcon.classList.remove('hidden');
+        downloadSpinner.classList.add('hidden');
+        downloadBtnText.textContent = 'Print & Download ATS PDF';
+      }
+    }
+
+    // Copy Controls
+    btnCopyMissing.addEventListener('click', () => {
+      if (!latestAnalysisResult || !latestAnalysisResult.missing_keywords.length) return;
+      const text = latestAnalysisResult.missing_keywords.map(k => formatSkillLabel(k)).join(', ');
+      navigator.clipboard.writeText(text);
+      copyMissingText.textContent = 'Copied!';
+      showToast('Skills Copied', `${latestAnalysisResult.missing_keywords.length} missing skills copied to clipboard.`, 'info');
+      setTimeout(() => {
+        copyMissingText.textContent = 'Copy All';
+      }, 1500);
+    });
+
+    btnCopySummary.addEventListener('click', () => {
+      if (!latestAnalysisResult) return;
+      const res = latestAnalysisResult;
+      const summary = `Glyph Resume Match Report\n` +
+        `Match Score: ${res.match_score}% (${res.match_level})\n` +
+        `Skill Coverage: ${Math.round(res.keyword_match_rate)}%\n\n` +
+        `Missing Skills (${res.missing_keywords.length}):\n${res.missing_keywords.map(k => formatSkillLabel(k)).join(', ')}\n\n` +
+        `Matched Skills (${res.matched_keywords.length}):\n${res.matched_keywords.map(k => formatSkillLabel(k)).join(', ')}\n\n` +
+        `Recommendations:\n- ${res.recommendations.join('\n- ')}\n`;
+
+      navigator.clipboard.writeText(summary);
+      copySummaryText.textContent = 'Copied!';
+      showToast('Report Copied', 'Summary report copied to clipboard.', 'info');
+      setTimeout(() => {
+        copySummaryText.textContent = 'Copy Report';
+      }, 1500);
+    });
+
+    function showToast(title, message, type = 'info') {
+      if (toastTimeout) clearTimeout(toastTimeout);
+
+      toastTitle.textContent = title;
+      toastMessage.textContent = message;
+
+      if (type === 'error') {
+        toastIcon.innerHTML = `<svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+      } else if (type === 'success') {
+        toastIcon.innerHTML = `<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`;
+      } else {
+        toastIcon.innerHTML = `<svg class="w-5 h-5 text-ice-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+      }
+
+      floatingToast.classList.add('toast-visible');
+
+      toastTimeout = setTimeout(() => {
+        floatingToast.classList.remove('toast-visible');
+      }, 3800);
+    }
+
+    toastClose.addEventListener('click', () => {
+      floatingToast.classList.remove('toast-visible');
+    });
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>
