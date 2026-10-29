@@ -492,7 +492,7 @@ def find_tesseract_cmd() -> Optional[str]:
     common_paths = [
         r"C:\Program Files\Tesseract-OCR\tesseract.exe",
         r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
-        r"C:\Users\haziq\AppData\Local\Programs\Tesseract-OCR\tesseract.exe",
+        os.path.expanduser(r"~\AppData\Local\Programs\Tesseract-OCR\tesseract.exe"),
         "/usr/bin/tesseract",
         "/usr/local/bin/tesseract",
     ]
@@ -1300,7 +1300,7 @@ def extract_and_strip_date(raw_line: str, default_date: str = "") -> Tuple[str, 
     if not line:
         return "", normalize_date_str(default_date)
 
-    # Pre-normalize space-separated 4-digit year pairs anywhere at the tail of the line (e.g. 'University of Karachi 2024   2028')
+    # Pre-normalize space-separated 4-digit year pairs anywhere at the tail of the line (e.g. 'Pacific Coast University 2024   2028')
     line = re.sub(
         rf"\b({YEAR_TOKEN_RE})\s{{1,8}}({YEAR_TOKEN_RE}|Present|Current)(\s*[\)\]]?\s*)$",
         lambda m: (m.group(1) if m.group(1).lower() == m.group(2).lower() else f"{m.group(1)} – {m.group(2)}") + m.group(3),
@@ -1711,8 +1711,8 @@ def parse_experience_section(exp_lines: List[str], raw_text_lines: str) -> List[
 
 def parse_projects_section(proj_lines: List[str], detected_skills: List[str]) -> List[ProjectItem]:
     """
-    Parses one or more Project entries cleanly (e.g. Karachi Complaint Portal,
-    MindEase, FuelQ), preserving each project's Name, Tech Stack, Year, and
+    Parses one or more Project entries cleanly (e.g. mobile apps, web platforms,
+    and systems projects), preserving each project's Name, Tech Stack, Year, and
     multi-line wrapped bullets without chopping sentences or duplicating years.
     """
     items: List[ProjectItem] = []
@@ -1771,7 +1771,7 @@ def parse_projects_section(proj_lines: List[str], detected_skills: List[str]) ->
                     current_date = dt or "2025"
                     current_bullets = [p_parts[1].strip()]
                 else:
-                    # Repair 2+ spaces from LaTeX em-dash in project title ('MindEase   Mental Health Platform' -> 'MindEase — Mental Health Platform')
+                    # Repair 2+ spaces from LaTeX em-dash in project title ('Project Name   Platform' -> 'Project Name — Platform')
                     header_fixed = re.sub(r"\s{2,}", " — ", raw_ln.strip())
                     header_clean, header_dt = extract_and_strip_date(header_fixed)
                     current_name = header_clean or clean_ln
@@ -1990,7 +1990,7 @@ def extract_resume_profile_in_memory(
             )
         experience_items[0].bullets = primary_bullets[:5]
 
-    # 9. Parse Projects (Supports all projects e.g. Karachi Complaint Portal, MindEase, FuelQ)
+    # 9. Parse Projects (Supports multiple entries with deduplicated dates & tech stacks)
     project_items = parse_projects_section(buckets.get("Projects", []), detected_skills)
 
     # 10. Parse Certifications cleanly without duplicate years

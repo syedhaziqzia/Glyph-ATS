@@ -2643,7 +2643,7 @@ Google Software Engineering &amp; Cloud Foundations 2025</textarea>
           prof.experience.slice(1).forEach(expItem => createExtraExpCard(expItem));
         }
 
-        // Populate Projects (Primary + Additional, e.g. Karachi Complaint Portal, MindEase, FuelQ)
+        // Populate Projects (Primary + Additional entries)
         const extraProjEl = document.getElementById('extra-proj-list');
         if (extraProjEl) extraProjEl.innerHTML = '';
         if (prof.projects && prof.projects.length > 0) {
@@ -2661,7 +2661,7 @@ Google Software Engineering &amp; Cloud Foundations 2025</textarea>
           prof.projects.slice(1).forEach(projItem => createExtraProjCard(projItem));
         }
 
-        // Populate Education (Primary + Additional, e.g. University of Karachi + Govt. Degree College)
+        // Populate Education (Primary + Additional entries)
         const extraEduEl = document.getElementById('extra-edu-list');
         if (extraEduEl) extraEduEl.innerHTML = '';
         if (prof.education && prof.education.length > 0) {

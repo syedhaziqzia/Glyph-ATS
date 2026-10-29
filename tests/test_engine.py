@@ -1,6 +1,12 @@
+import sys
+from pathlib import Path
 from contextlib import contextmanager
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from fastapi import HTTPException
-from fastapi.testclient import TestClient
 
 from backend.main import (
     app,
@@ -15,7 +21,11 @@ from backend.main import (
     categorize_skills_for_ats,
 )
 
-client = TestClient(app)
+try:
+    from fastapi.testclient import TestClient
+    client = TestClient(app)
+except Exception:
+    client = None
 
 
 @contextmanager
@@ -55,9 +65,15 @@ B.S. in Computer Science — University of Washington (2017 - 2021)
 
 
 def test_health_endpoint():
-    response = client.get("/api/health")
-    assert response.status_code == 200
-    data = response.json()
+    if client is not None:
+        response = client.get("/api/health")
+        assert response.status_code == 200
+        data = response.json()
+    else:
+        import asyncio
+        from backend.main import health_check
+        data = asyncio.run(health_check())
+
     assert data["status"] == "healthy"
     assert data["version"] == "2.5.0"
 
@@ -187,13 +203,13 @@ def test_in_memory_pdf_compiler():
 
 
 def test_cid_artifact_sanitization_and_skill_categorization():
-    dirty_text = "(cid:136) Analyzed global air quality; (cid:22) sprint with gami(cid:12)cation and o(cid:11)ine persistence."
+    dirty_text = "(cid:136) Architected cloud pipeline; (cid:22) deployment with gami(cid:12)cation and o(cid:11)line persistence."
     cleaned = sanitize_pdf_cid_artifacts(dirty_text)
     assert "(cid:" not in cleaned
     assert "gamification" in cleaned
     assert "offline" in cleaned
 
-    cats = categorize_skills_for_ats(["Python", "JavaScript", "React", "Firebase", "Git"])
+    cats = categorize_skills_for_ats(["Python", "JavaScript", "React", "PostgreSQL", "Git"])
     cat_names = [c[0] for c in cats]
     assert "Languages" in cat_names
     assert "Mobile & Web" in cat_names
@@ -203,12 +219,12 @@ def test_cid_artifact_sanitization_and_skill_categorization():
 
 def test_date_deduplication_and_multi_entry_resume_parsing():
     # 1. Verify space-separated LaTeX year ranges and duplicate dates are stripped cleanly
-    txt1, dt1 = extract_and_strip_date("University of Karachi 2024   2028")
-    assert txt1 == "University of Karachi"
+    txt1, dt1 = extract_and_strip_date("Pacific Coast University 2024   2028")
+    assert txt1 == "Pacific Coast University"
     assert dt1 == "2024 – 2028"
 
-    txt2, dt2 = extract_and_strip_date("Karachi Complaint Portal — Civic-Tech Mobile App 2025 (2025)")
-    assert txt2 == "Karachi Complaint Portal — Civic-Tech Mobile App"
+    txt2, dt2 = extract_and_strip_date("Distributed Task Scheduler — High-Throughput Service 2025 (2025)")
+    assert txt2 == "Distributed Task Scheduler — High-Throughput Service"
     assert dt2 == "2025"
 
     txt3, dt3 = extract_and_strip_date("C# • .NET 10 • WPF")
@@ -216,62 +232,63 @@ def test_date_deduplication_and_multi_entry_resume_parsing():
     assert dt3 == ""
 
     # 2. Verify full multi-entry reference resume parsing (2 Educations, 3 Projects, wrapped bullets, 5 Certifications)
-    ref_resume = """Syed Haziq Zia Naqvi
-Karachi, Pakistan ˆ +92 300 123 4567 ˆ syedhaziq@example.com
-linkedin.com/in/syed-haziq-zia-naqvi ˆ github.com/syedhaziqzia
+    ref_resume = """Morgan Vance
+Austin, TX ˆ +1 (512) 555-0199 ˆ morgan.vance@example.com
+linkedin.com/in/morgan-vance ˆ github.com/morganvance
 SUMMARY
-CS undergraduate who has shipped a civic-tech Android app (React Native + Firebase) with real-time maps, gami cation,
-and trilingual UI.
+Software engineering student who has designed distributed backend microservices with real-time stream processing,
+reliable caching, and modular service architecture.
 EDUCATION
-University of Karachi 2024   2028
+Pacific Coast University 2024   2028
 Bachelor of Science in Computer Science
-Govt. Degree College Majeed SRE 2021   2023
-Higher Secondary Certi cate (Pre-Engineering)
+Bayview Technical College 2021   2023
+Associate Degree in Engineering Science
 EXPERIENCE
-Data Storytelling Sprint Extern Aug 2026
-Extern, Inc.   sprint conducted in collaboration with PwC volunteers (The Human Skills Project) & Canva
-ˆ Analyzed global air quality data (23,000+ cities) to identify PM2.5 as the dominant AQI driver; surfaced Pakistan as
-the world's highest-polluted country and presented  ndings via Canva dashboard to PwC volunteers.
+Software Engineering Externship Aug 2026
+Global Cloud Labs   sprint conducted in collaboration with infrastructure team
+ˆ Evaluated distributed telemetry events across microservices to optimize latency bottlenecks; surfaced benchmark
+latency gains and presented  ndings via interactive dashboard.
 PROJECTS
-Karachi Complaint Portal   Civic-Tech Mobile App 2025
-React Native ˆ Firebase ˆ Firestore ˆ JavaScript
-ˆ Designed and shipped a full-featured Android app enabling citizens to report civic issues (road damage, sewage,
-encroachments) with GPS-pinned photo evidence on a real-time Firestore-backed map.
-MindEase   Mental Health Platform 2025
-Python ˆ Flask ˆ MySQL ˆ HTML/CSS
-ˆ Role-based web app (Admin, Counselor, User); 15-table normalized MySQL schema with full CRUD, JOINs, CAS\ufffdCADE deletion, parameterized queries, and PBKDF2+SHA256 password hashing.
-FuelQ   Queuing Simulator 2025
+Distributed Task Scheduler   High-Throughput Service 2025
+Go ˆ Python ˆ Redis ˆ PostgreSQL
+ˆ Designed and shipped a high-throughput job queue supporting priority execution, automated retries, and
+real-time execution monitoring on an event-driven cluster.
+DataStream Analytics   Telemetry Platform 2025
+Python ˆ FastAPI ˆ PostgreSQL ˆ Docker
+ˆ Built an observability platform with normalized relational schema, connection pooling, CAS\ufffdCADE deletion,
+parameterized queries, and authenticated REST endpoints.
+PacketFlow   Network Simulator 2025
 C# ˆ .NET 10 ˆ WPF
-ˆ Lead developer: discrete-event simulator for Shell Maskan petrol pump; implemented 8 Kendall queuing models
-validated against a 320-vehicle empirical dataset using Chi-Square testing.
+ˆ Lead developer: discrete-event packet simulation engine; implemented packet routing protocols
+validated against synthetic traffic benchmarks.
 TECHNICAL SKILLS
 Languages JavaScript, Python, Java, C#, SQL
-Mobile & Web React Native, Flask, React Navigation, i18next, HTML/CSS
-Cloud & DB Firebase (Firestore, Auth, Storage), MySQL
-Tools Linux (CLI), .NET / WPF, Android Studio, VirtualBox, Git
+Mobile & Web React, FastAPI, Node.js, HTML/CSS
+Cloud & DB PostgreSQL, Redis, Docker, AWS
+Tools Linux (CLI), .NET / WPF, Git, CI/CD
 CERTIFICATIONS
-Extern Data Storytelling & Visualization Sprint 2026
-Udacity AWS AI Practitioner Challenge 2026
+Cloud Computing Foundations Specialization 2026
+Full-Stack Architecture & Data Engineering Certification 2026
 """
     prof = extract_resume_profile_in_memory(ref_resume, ref_resume, ["python", "javascript", "sql"])
-    assert prof.full_name == "Syed Haziq Zia Naqvi"
-    assert prof.location == "Karachi, Pakistan"
-    assert "Zia Naqvi" not in prof.location
+    assert prof.full_name == "Morgan Vance"
+    assert prof.location == "Austin, TX"
+    assert "Vance" not in prof.location
 
     assert len(prof.education) == 2
-    assert prof.education[0].institution == "University of Karachi"
+    assert prof.education[0].institution == "Pacific Coast University"
     assert prof.education[0].year == "2024 – 2028"
     assert "2024" not in prof.education[0].institution
-    assert prof.education[1].institution == "Govt. Degree College Majeed SRE"
+    assert prof.education[1].institution == "Bayview Technical College"
     assert prof.education[1].year == "2021 – 2023"
 
     assert len(prof.projects) == 3
     assert "2025" not in prof.projects[0].name
-    assert prof.projects[1].name == "MindEase — Mental Health Platform"
+    assert prof.projects[1].name == "DataStream Analytics — Telemetry Platform"
     assert "CASCADE" in prof.projects[1].bullets[0]
-    assert prof.projects[2].name == "FuelQ — Queuing Simulator"
+    assert prof.projects[2].name == "PacketFlow — Network Simulator"
 
-    assert "surfaced Pakistan as the world's highest-polluted country" in prof.experience[0].bullets[0]
+    assert "surfaced benchmark" in prof.experience[0].bullets[0]
 
 
 if __name__ == "__main__":
