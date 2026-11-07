@@ -29,8 +29,12 @@
 - **🛡️ Real Resume vs. Non-Resume Checker (PDF, PNG, JPG):** Verifies that uploaded files are genuine resumes or CVs (checking for contact details, section titles, and typical resume structure) while automatically rejecting lecture notes, textbooks, homework, invoices, and research papers.
 - **🧠 Smart Role Expansion:** Accepts full job descriptions or short role titles (such as `Frontend, Backend Internships, SWE, ML`). It automatically expands them into key skill benchmarks across software, data, product, design, and cybersecurity roles.
 - **🔄 Acronym and Synonym Recognition:** Understands short and full technical terms interchangeably (e.g., `JS` ↔ `JavaScript`, `TS` ↔ `TypeScript`, `K8s` ↔ `Kubernetes`, `Postgres` ↔ `PostgreSQL`, `OOP` ↔ `Object-Oriented Programming`, `AWS` ↔ `Amazon Web Services`).
+- **🎯 Hard vs. Soft Skills Categorization:** Separates technical stack proficiencies (languages, frameworks, databases, cloud) from workplace and leadership competencies with dedicated match rate meters and categorized gap analysis.
+- **📍 Contextual Placement Scoring:** Evaluates whether keywords are actively demonstrated inside Experience and Project achievement bullets rather than merely listed in a flat skills section, ensuring your resume proves applied impact to ATS scanners.
+- **⚡ Live ATS Keyword Heatmap:** An interactive toggle on the resume preview that highlights matched target keywords directly on the paper sheet in mint green, giving you visual proof of where an ATS extracts your competencies.
+- **📏 Spacing Density Control (Single-Page Compact Mode):** Toggle between Standard and Compact page density with print CSS page-break protection to prevent awkward page splits and keep your resume cleanly on a single page.
+- **✍️ Real-Time Google-XYZ Bullet Quality Linter:** An in-editor assistant that checks achievement bullets as you type, flagging passive phrases, validating strong action verbs, and encouraging quantifiable metrics (`%`, `$`, scale).
 - **🔬 Parser Audit & X-Ray View:** Audits contact headers, section formatting, dates, and profile links. Includes an **X-Ray View** that reveals the exact raw text stream extracted from your document.
-- **📈 Quantified Bullet Impact & XYZ Formula:** Checks what percentage of your resume bullets include concrete numbers and metrics (`%`, `$`, scale, latency), flags passive phrasing, and suggests tailored achievement bullets for missing skills.
 - **📄 Split-Screen Resume Studio & Live Re-Scoring:** Automatically populates your uploaded resume into a clean split-screen editor with a live paper preview, 1-click missing skill injection, and a **"Re-Score in RAM"** button to verify your score improvement before exporting an ATS-ready PDF.
 
 ---
@@ -56,7 +60,7 @@ Candidates can load sample credentials or drop their own resume with an instanta
 ---
 
 ### 2. Step 2 — ATS Score & Skill Gap Telemetry
-Inspect overall match percentage, skill coverage rates, and review missing competencies. Candidates can 1-click inject missing skills or append Google-XYZ quantified achievement bullets directly into the resume studio.
+Inspect overall match percentage, dual **Technical Stack** vs. **Workplace & Transferable** skill coverage rates, and contextual placement within your experience. Candidates can review missing competencies divided into clear buckets and 1-click inject them or append Google-XYZ quantified achievement bullets directly into the resume studio.
 
 <p align="center">
   <img src="frontend/assets/preview-step2-match-report.png" alt="Step 2: ATS Score & Skill Gap Telemetry Report" width="900" />
@@ -65,7 +69,7 @@ Inspect overall match percentage, skill coverage rates, and review missing compe
 ---
 
 ### 3. Step 3 — Split-Screen Resume Studio & Real-Time PDF Compiler
-Make real-time edits with immediate live single-column preview rendering, re-score the optimized resume in volatile RAM, and export an ATS-compliant PDF.
+Make real-time edits with live single-column preview rendering, toggle the **ATS Keyword Heatmap** to visually locate target keywords on the page, adjust **Page Density (Compact / Standard)** to prevent multi-page overflow, get live feedback from the **Google-XYZ Bullet Linter**, re-score the optimized resume in volatile RAM, and export an ATS-compliant PDF.
 
 <p align="center">
   <img src="frontend/assets/preview-step3-resume-studio.png" alt="Step 3: Split-Screen Live Resume Studio & PDF Compiler" width="900" />
@@ -103,7 +107,7 @@ Glyph/
 │   │   └── preview-step3-resume-studio.png     # Step 3: Live Resume Studio
 │   └── index.html           # Deep navy interface, match report & live studio
 ├── tests/
-│   └── test_engine.py       # Automated test suite (ontology, synonyms, PDF compiler)
+│   └── test_engine.py       # Automated test suite (13 passing tests: ontology, synonyms, PDF compiler, hard/soft skills, compact mode)
 ├── LICENSE                  # MIT License
 └── README.md                # Project documentation & local setup instructions
 ```
