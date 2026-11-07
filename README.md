@@ -24,6 +24,44 @@
 
 ---
 
+## 📸 Application Walkthrough & Workflow
+
+### 1. Step 1 — Upload Resume & Target Role
+
+#### Initial State (Upload Ready)
+Upload any candidate resume (`PDF`, `PNG`, or `JPG`) or select one of the built-in role presets. The document gatekeeper verifies the file authenticity in RAM to reject non-resume files before processing.
+
+<p align="center">
+  <img src="frontend/assets/preview-step1-upload-empty.png" alt="Step 1: Upload Resume & Target Role - Empty State" width="900" />
+</p>
+
+#### Loaded State (Sample Resume Ready for Analysis)
+Candidates can load sample credentials or drop their own resume with an instantaneous verification signal and target role benchmark loaded.
+
+<p align="center">
+  <img src="frontend/assets/preview-step1-upload-loaded.png" alt="Step 1: Upload Resume & Target Role - Loaded Sample State" width="900" />
+</p>
+
+---
+
+### 2. Step 2 — ATS Score & Skill Gap Telemetry
+Inspect overall match percentage, skill coverage rates, and review missing competencies. Candidates can 1-click inject missing skills or append Google-XYZ quantified achievement bullets directly into the resume studio.
+
+<p align="center">
+  <img src="frontend/assets/preview-step2-match-report.png" alt="Step 2: ATS Score & Skill Gap Telemetry Report" width="900" />
+</p>
+
+---
+
+### 3. Step 3 — Split-Screen Resume Studio & Real-Time PDF Compiler
+Make real-time edits with immediate live single-column preview rendering, re-score the optimized resume in volatile RAM, and export an ATS-compliant PDF.
+
+<p align="center">
+  <img src="frontend/assets/preview-step3-resume-studio.png" alt="Step 3: Split-Screen Live Resume Studio & PDF Compiler" width="900" />
+</p>
+
+---
+
 ## 💡 Why I Built Glyph (My Personal Experience)
 
 I built **Glyph** out of my own frustration while applying for internships and software roles and testing my resume online:
@@ -56,9 +94,12 @@ Glyph/
 │   └── requirements.txt     # Python backend dependencies
 ├── frontend/
 │   ├── assets/
-│   │   ├── glyph_emblem.png # Isolated transparent logo emblem
-│   │   ├── Glyph_Logo.jpg   # Brand artwork
-│   │   └── readme.png       # UI showcase preview
+│   │   ├── glyph_emblem.png                    # Transparent emblem logo
+│   │   ├── Glyph_Logo.jpg                      # Brand artwork
+│   │   ├── preview-step1-upload-empty.png      # Step 1: Upload Empty State
+│   │   ├── preview-step1-upload-loaded.png     # Step 1: Upload Loaded State
+│   │   ├── preview-step2-match-report.png      # Step 2: Match Report Telemetry
+│   │   └── preview-step3-resume-studio.png     # Step 3: Live Resume Studio
 │   └── index.html           # Deep navy interface, match report & live studio
 ├── tests/
 │   └── test_engine.py       # Automated test suite (ontology, synonyms, PDF compiler)
