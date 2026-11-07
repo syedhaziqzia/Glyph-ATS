@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend/assets/glyph_emblem.png" alt="Glyph Emblem" width="100" />
+  <img src="frontend/assets/glyph_card_emblem.png" alt="Glyph Emblem" width="100" />
 </p>
 
 <h1 align="center">Glyph — ATS Resume Studio</h1>
@@ -21,6 +21,17 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue" alt="License"></a>
   <img src="https://img.shields.io/badge/Memory-100%25%20RAM%20%E2%80%A2%20Zero%20Storage-10b981" alt="Privacy">
 </p>
+
+---
+
+## 🌟 What Glyph Does (v2.5)
+
+- **🛡️ Real Resume vs. Non-Resume Checker (PDF, PNG, JPG):** Verifies that uploaded files are genuine resumes or CVs (checking for contact details, section titles, and typical resume structure) while automatically rejecting lecture notes, textbooks, homework, invoices, and research papers.
+- **🧠 Smart Role Expansion:** Accepts full job descriptions or short role titles (such as `Frontend, Backend Internships, SWE, ML`). It automatically expands them into key skill benchmarks across software, data, product, design, and cybersecurity roles.
+- **🔄 Acronym and Synonym Recognition:** Understands short and full technical terms interchangeably (e.g., `JS` ↔ `JavaScript`, `TS` ↔ `TypeScript`, `K8s` ↔ `Kubernetes`, `Postgres` ↔ `PostgreSQL`, `OOP` ↔ `Object-Oriented Programming`, `AWS` ↔ `Amazon Web Services`).
+- **🔬 Parser Audit & X-Ray View:** Audits contact headers, section formatting, dates, and profile links. Includes an **X-Ray View** that reveals the exact raw text stream extracted from your document.
+- **📈 Quantified Bullet Impact & XYZ Formula:** Checks what percentage of your resume bullets include concrete numbers and metrics (`%`, `$`, scale, latency), flags passive phrasing, and suggests tailored achievement bullets for missing skills.
+- **📄 Split-Screen Resume Studio & Live Re-Scoring:** Automatically populates your uploaded resume into a clean split-screen editor with a live paper preview, 1-click missing skill injection, and a **"Re-Score in RAM"** button to verify your score improvement before exporting an ATS-ready PDF.
 
 ---
 
@@ -74,17 +85,6 @@ I wanted a tool that anyone applying for jobs could genuinely trust and use with
 
 ---
 
-## 🌟 What Glyph Does (v2.5)
-
-- **🛡️ Real Resume vs. Non-Resume Checker (PDF, PNG, JPG):** Verifies that uploaded files are genuine resumes or CVs (checking for contact details, section titles, and typical resume structure) while automatically rejecting lecture notes, textbooks, homework, invoices, and research papers.
-- **🧠 Smart Role Expansion:** Accepts full job descriptions or short role titles (such as `Frontend, Backend Internships, SWE, ML`). It automatically expands them into key skill benchmarks across software, data, product, design, and cybersecurity roles.
-- **🔄 Acronym and Synonym Recognition:** Understands short and full technical terms interchangeably (e.g., `JS` ↔ `JavaScript`, `TS` ↔ `TypeScript`, `K8s` ↔ `Kubernetes`, `Postgres` ↔ `PostgreSQL`, `OOP` ↔ `Object-Oriented Programming`, `AWS` ↔ `Amazon Web Services`).
-- **🔬 Parser Audit & X-Ray View:** Audits contact headers, section formatting, dates, and profile links. Includes an **X-Ray View** that reveals the exact raw text stream extracted from your document.
-- **📈 Quantified Bullet Impact & XYZ Formula:** Checks what percentage of your resume bullets include concrete numbers and metrics (`%`, `$`, scale, latency), flags passive phrasing, and suggests tailored achievement bullets for missing skills.
-- **📄 Split-Screen Resume Studio & Live Re-Scoring:** Automatically populates your uploaded resume into a clean split-screen editor with a live paper preview, 1-click missing skill injection, and a **"Re-Score in RAM"** button to verify your score improvement before exporting an ATS-ready PDF.
-
----
-
 ## 🏗️ Project Structure
 
 ```text
@@ -94,6 +94,7 @@ Glyph/
 │   └── requirements.txt     # Python backend dependencies
 ├── frontend/
 │   ├── assets/
+│   │   ├── glyph_card_emblem.png               # High-contrast emblem logo with dark background
 │   │   ├── glyph_emblem.png                    # Transparent emblem logo
 │   │   ├── Glyph_Logo.jpg                      # Brand artwork
 │   │   ├── preview-step1-upload-empty.png      # Step 1: Upload Empty State
