@@ -1,11 +1,26 @@
-# Glyph ⚡ (v2.5)
-> **Private, Fast ATS Resume Analyzer, Parser Audit & Live Resume Studio**
-
 <p align="center">
-  <img src="frontend/assets/readme.png" alt="Glyph Logo" width="160" />
+  <img src="frontend/assets/glyph_emblem.png" alt="Glyph Emblem" width="100" />
 </p>
 
-Glyph bridges the gap between candidate resumes and modern Applicant Tracking Systems (such as Workday, Greenhouse, and Lever). It checks PDF and image resumes entirely in **system memory (RAM)**—combining **Smart Role Matching**, **Synonym and Acronym Detection**, **Keyword Coverage Scoring**, **Quantified Achievement Bullet Suggestions**, and a **Live Split-Screen Resume Builder** with **zero data saved to disk**.
+<h1 align="center">Glyph — ATS Resume Studio</h1>
+
+<p align="center">
+  <strong>A privacy-first, in-memory ATS resume analyzer, parser X-ray audit, and single-column live resume studio with instant skill gap analysis and zero data retention.</strong>
+</p>
+
+<p align="center">
+  <em>Built as an open-source, subscription-free alternative to commercial paywalled resume scanners.</em>
+</p>
+
+<p align="center">
+  <a href="https://github.com/syedhaziqzia/Glyph-ATS"><img src="https://img.shields.io/badge/Status-Production%20Ready-brightgreen?style=flat-square" alt="Status"></a>
+  <a href="https://github.com/syedhaziqzia/Glyph-ATS"><img src="https://img.shields.io/badge/Tests-11%20passing-brightgreen?style=flat-square" alt="Tests"></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-0.115+-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/TailwindCSS-v3.4-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="TailwindCSS"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License"></a>
+  <img src="https://img.shields.io/badge/Memory-100%25%20RAM%20%E2%80%A2%20Zero%20Storage-10b981?style=flat-square" alt="Privacy">
+</p>
 
 ---
 
@@ -41,9 +56,9 @@ Glyph/
 │   └── requirements.txt     # Python backend dependencies
 ├── frontend/
 │   ├── assets/
-│   │   ├── readme.png       # UI showcase preview
-│   │   ├── glyph_emblem.png # Isolated logo emblem
-│   │   └── Glyph_Logo.jpg   # Brand artwork
+│   │   ├── glyph_emblem.png # Isolated transparent logo emblem
+│   │   ├── Glyph_Logo.jpg   # Brand artwork
+│   │   └── readme.png       # UI showcase preview
 │   └── index.html           # Deep navy interface, match report & live studio
 ├── tests/
 │   └── test_engine.py       # Automated test suite (ontology, synonyms, PDF compiler)
