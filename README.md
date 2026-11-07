@@ -1,7 +1,9 @@
 # Glyph ⚡ (v2.5)
 > **Private, Fast ATS Resume Analyzer, Parser Audit & Live Resume Studio**
 
-![Glyph Preview](frontend/assets/readme.png)
+<p align="center">
+  <img src="frontend/assets/readme.png" alt="Glyph Logo" width="160" />
+</p>
 
 Glyph bridges the gap between candidate resumes and modern Applicant Tracking Systems (such as Workday, Greenhouse, and Lever). It checks PDF and image resumes entirely in **system memory (RAM)**—combining **Smart Role Matching**, **Synonym and Acronym Detection**, **Keyword Coverage Scoring**, **Quantified Achievement Bullet Suggestions**, and a **Live Split-Screen Resume Builder** with **zero data saved to disk**.
 
