@@ -3075,13 +3075,12 @@ if frontend_dir.exists():
     if assets_dir.exists():
         app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
-    @app.get("/logo.jpg", include_in_schema=False)
-    @app.get("/Glyph_Logo.jpg", include_in_schema=False)
-    async def serve_root_logo() -> FileResponse:
-        logo_path: Path = frontend_dir / "assets" / "Glyph_Logo.jpg"
-        if logo_path.exists():
-            return FileResponse(logo_path)
-        raise HTTPException(status_code=404, detail="Logo not found")
+    @app.get("/favicon.ico", include_in_schema=False)
+    async def serve_favicon() -> FileResponse:
+        fav_path: Path = frontend_dir / "assets" / "glyph_emblem.png"
+        if fav_path.exists():
+            return FileResponse(fav_path)
+        raise HTTPException(status_code=404, detail="Favicon not found")
 
     @app.get("/", include_in_schema=False)
     async def serve_index() -> FileResponse:

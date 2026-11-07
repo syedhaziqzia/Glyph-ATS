@@ -13,7 +13,6 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Status-Production%20Ready-brightgreen" alt="Status">
   <img src="https://img.shields.io/badge/Tests-13%20passing-brightgreen" alt="Tests">
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-0.115%2B-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python"></a>
@@ -100,7 +99,6 @@ Glyph/
 │   ├── assets/
 │   │   ├── glyph_card_emblem.png               # High-contrast emblem logo with dark background
 │   │   ├── glyph_emblem.png                    # Transparent emblem logo
-│   │   ├── Glyph_Logo.jpg                      # Brand artwork
 │   │   ├── preview-step1-upload-empty.png      # Step 1: Upload Empty State
 │   │   ├── preview-step1-upload-loaded.png     # Step 1: Upload Loaded State
 │   │   ├── preview-step2-match-report.png      # Step 2: Match Report Telemetry
@@ -116,27 +114,58 @@ Glyph/
 
 ## 🚀 Quick Start (Run Locally)
 
-1. **Install Dependencies:**
-   ```bash
-   pip install -r backend/requirements.txt
-   ```
-2. **Start the Server:**
-   ```bash
-   python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
-   ```
-3. **Open Glyph:**
-   Visit **[http://127.0.0.1:8000](http://127.0.0.1:8000)** in your browser.
+Follow these steps to clone and run Glyph locally on your machine.
+
+### 1. Prerequisites
+- **Python 3.10+** installed ([python.org](https://www.python.org/downloads/))
+- **Git** installed ([git-scm.com](https://git-scm.com/))
+
+### 2. Clone the Repository
+```bash
+git clone https://github.com/syedhaziqzia/Glyph-ATS.git
+cd Glyph-ATS
+```
+
+### 3. Set Up a Virtual Environment (Recommended)
+
+**On Windows (PowerShell):**
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+```
+
+**On macOS / Linux:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 4. Install Dependencies
+```bash
+pip install -r backend/requirements.txt
+```
+
+### 5. Launch the Application
+Start the FastAPI server with hot-reload enabled:
+```bash
+python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+### 6. Open in Your Browser
+Navigate to **[http://127.0.0.1:8000](http://127.0.0.1:8000)** in Chrome, Edge, Safari, or Firefox.
+
+> **💡 Quick Test:** On Step 1, click **"Load Demo Resume"**, enter a role or skills (e.g. `Backend Engineer: Python, FastAPI, Docker`), and click **Analyze ATS Fit** to test the entire pipeline in volatile memory!
 
 ---
 
-## 🧪 Running Automated Tests
+## 🧪 Running the Automated Test Suite
 
-Run the test suite to verify the parser, ontology, and PDF generator:
+Verify document classification, role expansion, skill ontology, and in-memory PDF generation:
 
 ```bash
 python tests/test_engine.py
 ```
-*(or via `pytest tests/test_engine.py -v`)*
+*All 13 unit tests will execute and confirm 100% engine readiness.*
 
 ---
 
