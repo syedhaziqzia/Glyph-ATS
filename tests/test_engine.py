@@ -19,6 +19,8 @@ from backend.main import (
     render_pdf_in_memory,
     sanitize_pdf_cid_artifacts,
     categorize_skills_for_ats,
+    partition_hard_and_soft_skills,
+    is_soft_skill_term,
 )
 
 try:
@@ -289,6 +291,53 @@ Full-Stack Architecture & Data Engineering Certification 2026
     assert prof.projects[2].name == "PacketFlow — Network Simulator"
 
     assert "surfaced benchmark" in prof.experience[0].bullets[0]
+
+
+
+def test_hard_and_soft_skills_partitioning():
+    matched = ["python", "fastapi", "docker", "collaboration", "leadership"]
+    missing = ["kubernetes", "problem solving", "communication"]
+    hard_m, hard_miss, soft_m, soft_miss, h_rate, s_rate = partition_hard_and_soft_skills(matched, missing)
+    assert "python" in hard_m
+    assert "fastapi" in hard_m
+    assert "docker" in hard_m
+    assert "collaboration" in soft_m
+    assert "leadership" in soft_m
+    assert "kubernetes" in hard_miss
+    assert "problem solving" in soft_miss
+    assert "communication" in soft_miss
+    assert h_rate == 75.0
+    assert round(s_rate, 1) == 50.0
+
+
+def test_compact_mode_pdf_rendering():
+    payload = {
+        "full_name": "Taylor Swift",
+        "email": "taylor@swift.io",
+        "phone": "+1 555-0100",
+        "location": "Nashville, TN",
+        "summary": "Distributed systems engineer with deep concurrency experience.",
+        "skills": ["Rust", "Go", "Docker", "Kubernetes"],
+        "experience": [
+            {
+                "title": "Principal Systems Engineer",
+                "company": "Decentralized Systems Co",
+                "dates": "2021 – Present",
+                "bullets": ["Engineered high-throughput lock-free queues processing 50M ops/sec."],
+            }
+        ],
+        "education": [
+            {
+                "institution": "Vanderbilt University",
+                "degree": "B.S. Computer Engineering",
+                "year": "2017 – 2021",
+            }
+        ],
+        "compact_mode": True,
+    }
+    pdf_bytes = render_pdf_in_memory(payload)
+    assert pdf_bytes.startswith(b"%PDF")
+    assert len(pdf_bytes) > 500
 
 
 if __name__ == "__main__":

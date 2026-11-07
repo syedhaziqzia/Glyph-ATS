@@ -546,6 +546,23 @@
         0 0 90px -25px rgba(59, 130, 246, 0.35);
       transition: transform 0.4s var(--ease);
     }
+    .ats-heat-token {
+      background-color: #d1fae5 !important;
+      color: #065f46 !important;
+      font-weight: 700 !important;
+      padding: 0 3px !important;
+      border-radius: 3px !important;
+      box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.45) !important;
+    }
+    #printer-paper-sheet.compact-sheet {
+      padding-top: 1.5rem !important;
+      padding-bottom: 1.5rem !important;
+      font-size: 10px !important;
+      line-height: 1.28 !important;
+    }
+    #printer-paper-sheet.compact-sheet [data-paper-section] {
+      margin-bottom: 4px !important;
+    }
     #printer-paper-sheet [data-paper-section] {
       border-radius: 4px;
       margin-left: -6px;
@@ -941,6 +958,27 @@
               <div class="text-[10.5px] text-slate-500 mt-0.5">Coverage</div>
             </div>
           </div>
+
+          <div class="mt-4 pt-4 border-t border-white/[0.06] space-y-2.5">
+            <div>
+              <div class="flex items-center justify-between text-[11px] mb-1">
+                <span class="text-slate-400 font-medium">Technical Stack Match</span>
+                <span id="metric-hard-rate" class="font-mono font-semibold text-cyan-300">0%</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                <div id="bar-hard-rate" class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-700" style="width: 0%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-[11px] mb-1">
+                <span class="text-slate-400 font-medium">Workplace &amp; Transferable</span>
+                <span id="metric-soft-rate" class="font-mono font-semibold text-purple-300">0%</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                <div id="bar-soft-rate" class="h-full rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-700" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Insights -->
@@ -972,6 +1010,13 @@
             </div>
 
             <div id="step2-panel-matched" class="step2-subpanel hidden view-panel space-y-6 max-h-[340px] overflow-y-auto pr-1">
+              <div id="contextual-impact-card" class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-[12px] flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span id="contextual-impact-text" class="text-slate-300">Competencies demonstrated in active work experience or projects</span>
+                </div>
+                <span id="contextual-impact-count" class="font-mono font-bold text-blue-300 text-[11px] bg-blue-500/20 px-2 py-0.5 rounded-md">0 In Achievements</span>
+              </div>
               <div>
                 <p class="section-label mb-3">Found in your resume</p>
                 <div id="matched-keywords-container" class="flex flex-wrap gap-1.5"></div>
@@ -1142,6 +1187,7 @@
                   <textarea id="rb-exp-bullets" rows="5" class="glyph-input field resize-y">Architected scalable backend services and REST APIs with Python and FastAPI handling 10M+ requests daily.
 Built responsive frontend interfaces in React and TypeScript, improving page load speed by 35%.
 Automated unit testing and CI/CD deployment workflows, reducing release turnaround time by 40%.</textarea>
+                  <div id="exp-bullet-lint-feedback" class="mt-2 space-y-1"></div>
                 </div>
               </div>
               <div id="extra-exp-list" class="space-y-3"></div>
@@ -1171,6 +1217,7 @@ Automated unit testing and CI/CD deployment workflows, reducing release turnarou
                 <div>
                   <label class="label" for="rb-proj-bullets">Highlights <span class="text-slate-600">· one per line</span></label>
                   <textarea id="rb-proj-bullets" rows="3" class="glyph-input field resize-y">Designed and shipped a full-featured platform with real-time synchronization, role-based access control, and sub-100ms query response times.</textarea>
+                  <div id="proj-bullet-lint-feedback" class="mt-2 space-y-1"></div>
                 </div>
               </div>
               <div id="extra-proj-list" class="space-y-3"></div>
@@ -1220,10 +1267,21 @@ Google Software Engineering &amp; Cloud Foundations 2025</textarea>
                 <span class="section-label">Live preview</span>
                 <span id="preview-order-badge" class="text-[10.5px] font-mono text-slate-400 px-1.5 py-0.5 rounded-md bg-white/[0.04] ring-1 ring-white/[0.06]">Education Near Top</span>
               </div>
-              <button type="submit" id="btn-download-pdf" class="btn-ghost text-[12px] px-3 py-1.5 rounded-lg flex items-center gap-1.5 cursor-pointer">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                <span>Export</span>
-              </button>
+              <div class="flex items-center gap-2">
+                <button type="button" id="btn-toggle-density" class="btn-ghost text-[11px] font-mono px-2 py-1 rounded-md flex items-center gap-1 cursor-pointer" title="Toggle Compact / Standard page density">
+                  <span>Density:</span>
+                  <strong id="density-status-text" class="text-blue-300">Standard</strong>
+                </button>
+                <button type="button" id="btn-toggle-heatmap" class="btn-ghost text-[11px] font-mono px-2 py-1 rounded-md flex items-center gap-1 cursor-pointer" title="Highlight ATS keywords on the live resume preview">
+                  <span id="heatmap-status-dot" class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                  <span>ATS Heatmap:</span>
+                  <strong id="heatmap-status-text" class="text-slate-400">OFF</strong>
+                </button>
+                <button type="submit" id="btn-download-pdf" class="btn-ghost text-[12px] px-3 py-1.5 rounded-lg flex items-center gap-1.5 cursor-pointer">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                  <span>Export</span>
+                </button>
+              </div>
             </div>
 
             <div class="preview-stage">
@@ -1289,6 +1347,8 @@ Google Software Engineering &amp; Cloud Foundations 2025</textarea>
     let originalUploadedScore = null;
     let toastTimeout = null;
     let loadingStageInterval = null;
+    let atsHeatmapActive = false;
+    let compactModeActive = false;
 
     // Step navigation
     const viewStep1 = document.getElementById('view-step-1');
@@ -2224,6 +2284,28 @@ Google Software Engineering &amp; Cloud Foundations 2025</textarea>
       matchedBadgeCount.textContent = `${data.stats.matched_keywords_count}`;
       reportFormatPill.textContent = data.document_format || 'PDF';
 
+      // Hard vs. Soft Skills and Contextual Density
+      const hardRate = Math.round(data.hard_skills_match_rate ?? (data.keyword_match_rate ?? 0));
+      const softRate = Math.round(data.soft_skills_match_rate ?? (data.keyword_match_rate ?? 0));
+      const hardRateEl = document.getElementById('metric-hard-rate');
+      const barHardRate = document.getElementById('bar-hard-rate');
+      const softRateEl = document.getElementById('metric-soft-rate');
+      const barSoftRate = document.getElementById('bar-soft-rate');
+      if (hardRateEl) hardRateEl.textContent = `${hardRate}%`;
+      if (barHardRate) barHardRate.style.width = `${Math.min(100, Math.max(0, hardRate))}%`;
+      if (softRateEl) softRateEl.textContent = `${softRate}%`;
+      if (barSoftRate) barSoftRate.style.width = `${Math.min(100, Math.max(0, softRate))}%`;
+
+      const ctxCount = data.context_count ?? 0;
+      const ctxPill = document.getElementById('contextual-impact-count');
+      const ctxText = document.getElementById('contextual-impact-text');
+      if (ctxPill) ctxPill.textContent = `${ctxCount} In Achievements`;
+      if (ctxText) {
+        ctxText.textContent = ctxCount > 0
+          ? `${ctxCount} matched skills are actively demonstrated within Experience or Projects achievements.`
+          : 'Tip: Integrate matched skills directly into work experience bullets to prove hands-on impact.';
+      }
+
       // Auto-Populate Step 3
       if (data.parsed_profile && !window.__skipProfileOverwrite) {
         const prof = data.parsed_profile;
@@ -2369,38 +2451,102 @@ Google Software Engineering &amp; Cloud Foundations 2025</textarea>
         }
       }
 
-      // Missing Keywords
+      // Categorized Missing Keywords
       missingKeywordsContainer.innerHTML = '';
-      if (data.missing_keywords && data.missing_keywords.length > 0) {
-        data.missing_keywords.forEach((kw) => {
-          const prettyKw = formatSkillLabel(kw);
-          const pill = document.createElement('button');
-          pill.type = 'button';
-          pill.className = 'kw-pill text-xs font-medium text-zinc-200 bg-white/[0.03] hover:bg-ice-subtle hover:text-white border border-white/[0.1] hover:border-ice-400/40 px-3 py-1 rounded-lg flex items-center gap-1.5 cursor-pointer group transition-all';
-          pill.innerHTML = `<span>${escapeHtml(prettyKw)}</span><span class="text-ice-400 font-mono text-[11px]">+</span>`;
-          pill.addEventListener('click', () => {
-            navigator.clipboard.writeText(prettyKw).catch(() => {});
-            appendSkillToBuilder(prettyKw);
-            showToast('Skill Added', `"${prettyKw}" appended to Resume Studio.`, 'info');
-          });
-          missingKeywordsContainer.appendChild(pill);
-        });
-      } else {
+      const hardMiss = data.hard_missing || data.missing_keywords || [];
+      const softMiss = data.soft_missing || [];
+
+      if (hardMiss.length === 0 && softMiss.length === 0) {
         missingKeywordsContainer.innerHTML = '<span class="text-xs text-emerald-400">All target skills are covered in your resume!</span>';
+      } else {
+        if (hardMiss.length > 0) {
+          const wrap = document.createElement('div');
+          wrap.className = 'w-full mb-3.5';
+          wrap.innerHTML = `<div class="text-[10.5px] font-mono font-semibold uppercase text-cyan-400 tracking-wider mb-2">Technical Stack Gap (${hardMiss.length})</div>`;
+          const subContainer = document.createElement('div');
+          subContainer.className = 'flex flex-wrap gap-2';
+          hardMiss.forEach(kw => {
+            const prettyKw = formatSkillLabel(kw);
+            const pill = document.createElement('button');
+            pill.type = 'button';
+            pill.className = 'kw-pill text-xs font-medium text-zinc-200 bg-white/[0.03] hover:bg-cyan-500/10 hover:text-white border border-cyan-500/20 hover:border-cyan-400/50 px-3 py-1 rounded-lg flex items-center gap-1.5 cursor-pointer group transition-all';
+            pill.innerHTML = `<span>${escapeHtml(prettyKw)}</span><span class="text-cyan-400 font-mono text-[11px]">+</span>`;
+            pill.addEventListener('click', () => {
+              navigator.clipboard.writeText(prettyKw).catch(() => {});
+              appendSkillToBuilder(prettyKw);
+              showToast('Skill Added', `"${prettyKw}" appended to Resume Studio.`, 'info');
+            });
+            subContainer.appendChild(pill);
+          });
+          wrap.appendChild(subContainer);
+          missingKeywordsContainer.appendChild(wrap);
+        }
+
+        if (softMiss.length > 0) {
+          const wrap = document.createElement('div');
+          wrap.className = 'w-full';
+          wrap.innerHTML = `<div class="text-[10.5px] font-mono font-semibold uppercase text-purple-400 tracking-wider mb-2">Workplace &amp; Transferable Gap (${softMiss.length})</div>`;
+          const subContainer = document.createElement('div');
+          subContainer.className = 'flex flex-wrap gap-2';
+          softMiss.forEach(kw => {
+            const prettyKw = formatSkillLabel(kw);
+            const pill = document.createElement('button');
+            pill.type = 'button';
+            pill.className = 'kw-pill text-xs font-medium text-zinc-200 bg-white/[0.03] hover:bg-purple-500/10 hover:text-white border border-purple-500/20 hover:border-purple-400/50 px-3 py-1 rounded-lg flex items-center gap-1.5 cursor-pointer group transition-all';
+            pill.innerHTML = `<span>${escapeHtml(prettyKw)}</span><span class="text-purple-400 font-mono text-[11px]">+</span>`;
+            pill.addEventListener('click', () => {
+              navigator.clipboard.writeText(prettyKw).catch(() => {});
+              appendSkillToBuilder(prettyKw);
+              showToast('Skill Added', `"${prettyKw}" appended to Resume Studio.`, 'info');
+            });
+            subContainer.appendChild(pill);
+          });
+          wrap.appendChild(subContainer);
+          missingKeywordsContainer.appendChild(wrap);
+        }
       }
 
-      // Matched Keywords
+      // Categorized Matched Keywords
       matchedKeywordsContainer.innerHTML = '';
-      if (data.matched_keywords && data.matched_keywords.length > 0) {
-        data.matched_keywords.forEach(kw => {
-          const prettyKw = formatSkillLabel(kw);
-          const pill = document.createElement('span');
-          pill.className = 'kw-pill text-xs font-medium text-ice-200 bg-ice-subtle border border-ice-400/30 px-2.5 py-0.5 rounded-lg flex items-center gap-1';
-          pill.innerHTML = `<svg class="w-3 h-3 text-ice-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg><span>${escapeHtml(prettyKw)}</span>`;
-          matchedKeywordsContainer.appendChild(pill);
-        });
-      } else {
+      const hardMatch = data.hard_matched || data.matched_keywords || [];
+      const softMatch = data.soft_matched || [];
+
+      if (hardMatch.length === 0 && softMatch.length === 0) {
         matchedKeywordsContainer.innerHTML = '<span class="text-xs text-zinc-400">No direct skill matches found.</span>';
+      } else {
+        if (hardMatch.length > 0) {
+          const wrap = document.createElement('div');
+          wrap.className = 'w-full mb-3';
+          wrap.innerHTML = `<div class="text-[10.5px] font-mono font-semibold uppercase text-cyan-400 tracking-wider mb-2">Technical Competencies (${hardMatch.length})</div>`;
+          const sub = document.createElement('div');
+          sub.className = 'flex flex-wrap gap-1.5';
+          hardMatch.forEach(kw => {
+            const prettyKw = formatSkillLabel(kw);
+            const pill = document.createElement('span');
+            pill.className = 'kw-pill text-xs font-medium text-cyan-200 bg-cyan-500/10 border border-cyan-400/30 px-2.5 py-0.5 rounded-lg flex items-center gap-1';
+            pill.innerHTML = `<svg class="w-3 h-3 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg><span>${escapeHtml(prettyKw)}</span>`;
+            sub.appendChild(pill);
+          });
+          wrap.appendChild(sub);
+          matchedKeywordsContainer.appendChild(wrap);
+        }
+
+        if (softMatch.length > 0) {
+          const wrap = document.createElement('div');
+          wrap.className = 'w-full';
+          wrap.innerHTML = `<div class="text-[10.5px] font-mono font-semibold uppercase text-purple-400 tracking-wider mb-2">Workplace &amp; Leadership Skills (${softMatch.length})</div>`;
+          const sub = document.createElement('div');
+          sub.className = 'flex flex-wrap gap-1.5';
+          softMatch.forEach(kw => {
+            const prettyKw = formatSkillLabel(kw);
+            const pill = document.createElement('span');
+            pill.className = 'kw-pill text-xs font-medium text-purple-200 bg-purple-500/10 border border-purple-400/30 px-2.5 py-0.5 rounded-lg flex items-center gap-1';
+            pill.innerHTML = `<svg class="w-3 h-3 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg><span>${escapeHtml(prettyKw)}</span>`;
+            sub.appendChild(pill);
+          });
+          wrap.appendChild(sub);
+          matchedKeywordsContainer.appendChild(wrap);
+        }
       }
 
       // Recommendations
@@ -2548,6 +2694,107 @@ Google Software Engineering &amp; Cloud Foundations 2025</textarea>
       return filteredCity.length > 0 ? `${filteredCity.join(' ')}, ${regionPart}` : loc;
     }
 
+    // =========================================================================
+    // Advanced ATS Quality Linter & Heatmap Engine
+    // =========================================================================
+
+    const STRONG_ACTION_VERBS = new Set([
+      'architected', 'engineered', 'developed', 'shipped', 'built', 'designed', 'optimized',
+      'automated', 'spearheaded', 'led', 'deployed', 'reduced', 'increased', 'accelerated',
+      'refactored', 'scaled', 'mentored', 'created', 'implemented', 'orchestrated', 'eliminated',
+      'secured', 'integrated', 'formulated', 'standardized', 'authored', 'established', 'delivered',
+      'audited', 'streamlined', 'pioneered', 'directed', 'curated', 'constructed', 'programmed'
+    ]);
+
+    const WEAK_VERB_PATTERNS = [
+      /^(responsible for|worked on|helped with|assisted in|assisted with|handled|tasked with|involved in|participated in)/i
+    ];
+
+    const METRIC_PATTERN = /(\d+[%kKxXmMbB]|\$\d+|\d+\+|\b\d+\b(?!\s*(?:st|nd|rd|th)))/;
+
+    function lintBulletLine(line) {
+      const clean = line.replace(/^[-•●▪*]\s*/, '').trim();
+      if (!clean || clean.length < 5) return null;
+
+      const firstWord = (clean.split(/\s+/)[0] || '').toLowerCase().replace(/[^a-z]/g, '');
+      const hasStrongVerb = STRONG_ACTION_VERBS.has(firstWord);
+      const hasWeakVerb = WEAK_VERB_PATTERNS.some(pat => pat.test(clean));
+      const hasMetric = METRIC_PATTERN.test(clean);
+
+      if (hasStrongVerb && hasMetric) {
+        return {
+          type: 'strong',
+          icon: '✨',
+          text: `Strong XYZ Impact: Action verb ("${firstWord}") + quantified metric detected.`
+        };
+      }
+      if (hasWeakVerb) {
+        return {
+          type: 'weak',
+          icon: '⚠',
+          text: 'Passive opening detected: Replace with strong verb (e.g. "Architected", "Optimized", "Shipped").'
+        };
+      }
+      if (!hasMetric) {
+        return {
+          type: 'no-metric',
+          icon: '💡',
+          text: 'Google XYZ Tip: Quantify your result with a concrete metric (e.g. "by 35%", "10M+ daily requests").'
+        };
+      }
+      return {
+        type: 'good',
+        icon: '✓',
+        text: 'Action-oriented bullet point.'
+      };
+    }
+
+    function updateBulletLinter(textareaEl, containerEl) {
+      if (!textareaEl || !containerEl) return;
+      const lines = textareaEl.value.split('\n').filter(l => l.trim().length >= 5);
+      if (lines.length === 0) {
+        containerEl.innerHTML = '';
+        return;
+      }
+
+      const results = lines.slice(0, 3).map(l => lintBulletLine(l)).filter(Boolean);
+      containerEl.innerHTML = results.map(r => {
+        let badgeColor = 'bg-blue-500/10 text-blue-300 border-blue-500/20';
+        if (r.type === 'strong') badgeColor = 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20';
+        if (r.type === 'weak') badgeColor = 'bg-amber-500/10 text-amber-300 border-amber-500/20';
+        if (r.type === 'no-metric') badgeColor = 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20';
+        return `
+          <div class="flex items-center gap-2 text-[11px] font-medium px-2.5 py-1 rounded-md border ${badgeColor}">
+            <span>${r.icon}</span>
+            <span class="truncate">${escapeHtml(r.text)}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function applyAtsHeatmap(htmlStr, keywords) {
+      if (!htmlStr || !keywords || keywords.length === 0) return htmlStr;
+      const sortedKws = Array.from(new Set(keywords))
+        .map(k => k.trim())
+        .filter(k => k.length >= 2)
+        .sort((a, b) => b.length - a.length);
+
+      if (sortedKws.length === 0) return htmlStr;
+
+      return htmlStr.replace(/(<[^>]+>)|([^<]+)/g, (match, tag, textNode) => {
+        if (tag) return tag;
+        if (!textNode || !textNode.trim()) return textNode;
+
+        let highlighted = textNode;
+        for (const kw of sortedKws) {
+          const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const regex = new RegExp(`(?<![a-zA-Z0-9])(${escaped})(?![a-zA-Z0-9])`, 'gi');
+          highlighted = highlighted.replace(regex, '<mark class="ats-heat-token">$1</mark>');
+        }
+        return highlighted;
+      });
+    }
+
     function updateLiveResumePreview() {
       const name = cleanCidText(document.getElementById('rb-name').value) || 'Alex Vance';
       const email = cleanCidText(document.getElementById('rb-email').value);
@@ -2684,11 +2931,63 @@ Google Software Engineering &amp; Cloud Foundations 2025</textarea>
         ? (summaryHtml + eduHtml + expHtml + projHtml + skillsHtml + certsHtml)
         : (summaryHtml + expHtml + projHtml + eduHtml + skillsHtml + certsHtml);
 
+      const finalHtml = (atsHeatmapActive && latestAnalysisResult && latestAnalysisResult.matched_keywords)
+        ? applyAtsHeatmap(combinedHtml, latestAnalysisResult.matched_keywords)
+        : combinedHtml;
+
       const container = document.getElementById('preview-dynamic-sections');
-      if (container) container.innerHTML = combinedHtml;
+      if (container) container.innerHTML = finalHtml;
+
+      // Update live bullet linters
+      const expBulletsEl = document.getElementById('rb-exp-bullets');
+      const expLintEl = document.getElementById('exp-bullet-lint-feedback');
+      if (expBulletsEl && expLintEl) updateBulletLinter(expBulletsEl, expLintEl);
+
+      const projBulletsEl = document.getElementById('rb-proj-bullets');
+      const projLintEl = document.getElementById('proj-bullet-lint-feedback');
+      if (projBulletsEl && projLintEl) updateBulletLinter(projBulletsEl, projLintEl);
     }
 
     resumeBuilderForm.addEventListener('input', updateLiveResumePreview);
+
+    // Spacing Density switch
+    const btnToggleDensity = document.getElementById('btn-toggle-density');
+    const densityStatusText = document.getElementById('density-status-text');
+    if (btnToggleDensity) {
+      btnToggleDensity.addEventListener('click', () => {
+        compactModeActive = !compactModeActive;
+        if (densityStatusText) {
+          densityStatusText.textContent = compactModeActive ? 'Compact' : 'Standard';
+          densityStatusText.className = compactModeActive ? 'text-amber-300' : 'text-blue-300';
+        }
+        const paperSheet = document.getElementById('printer-paper-sheet');
+        if (paperSheet) paperSheet.classList.toggle('compact-sheet', compactModeActive);
+        updateLiveResumePreview();
+        showToast('Spacing Updated', compactModeActive ? 'Compact mode enabled: margins and fonts tightened for single-page export.' : 'Standard layout spacing active.', 'info');
+      });
+    }
+
+    // ATS Heatmap switch
+    const btnToggleHeatmap = document.getElementById('btn-toggle-heatmap');
+    const heatmapStatusDot = document.getElementById('heatmap-status-dot');
+    const heatmapStatusText = document.getElementById('heatmap-status-text');
+    if (btnToggleHeatmap) {
+      btnToggleHeatmap.addEventListener('click', () => {
+        atsHeatmapActive = !atsHeatmapActive;
+        if (heatmapStatusDot) {
+          heatmapStatusDot.className = atsHeatmapActive 
+            ? 'w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse' 
+            : 'w-1.5 h-1.5 rounded-full bg-slate-500';
+        }
+        if (heatmapStatusText) {
+          heatmapStatusText.className = atsHeatmapActive ? 'text-emerald-300' : 'text-slate-400';
+          heatmapStatusText.textContent = atsHeatmapActive ? 'ON' : 'OFF';
+        }
+        updateLiveResumePreview();
+        showToast('ATS Keyword Heatmap', atsHeatmapActive ? 'Live keyword highlighting enabled on resume preview.' : 'Heatmap disabled. Pristine paper view active.', 'info');
+      });
+    }
+
     document.querySelectorAll('input[name="rb-section-order"]').forEach(r => {
       r.addEventListener('change', updateLiveResumePreview);
     });
@@ -2842,6 +3141,7 @@ Google Software Engineering &amp; Cloud Foundations 2025</textarea>
         summary: cleanCidText(document.getElementById('rb-summary').value),
         skills: skillsList,
         section_order: getSelectedSectionOrder(),
+        compact_mode: !!compactModeActive,
         experience: collectExperienceEntries(),
         projects: collectProjectEntries(),
         education: collectEducationEntries(),

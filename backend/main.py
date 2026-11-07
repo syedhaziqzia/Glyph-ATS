@@ -584,6 +584,13 @@ class AnalysisResponse(BaseModel):
     bullet_impact: BulletImpactReport
     structural_audit: StructuralAuditReport
     ephemeral_notice: str
+    hard_skills_match_rate: Optional[float] = 0.0
+    soft_skills_match_rate: Optional[float] = 0.0
+    hard_matched: Optional[List[str]] = []
+    hard_missing: Optional[List[str]] = []
+    soft_matched: Optional[List[str]] = []
+    soft_missing: Optional[List[str]] = []
+    context_count: Optional[int] = 0
 
 class ResumeGenerateRequest(BaseModel):
     full_name: str
@@ -602,6 +609,10 @@ class ResumeGenerateRequest(BaseModel):
         default="jakes",
         description="ATS section ordering: 'jakes' (Summary -> Education -> Experience -> Projects -> Technical Skills -> Certifications) or 'standard' (Summary -> Experience -> Projects -> Education -> Technical Skills -> Certifications)",
     )
+    compact_mode: Optional[bool] = Field(
+        default=False,
+        description="Enables compact spacing mode to cleanly fit 1-page resume limits without page overflows",
+    )
 
 # -------------------------------------------------------------------------
 # Jinja2 Gold-Standard ATS Resume HTML Template
@@ -616,23 +627,41 @@ RESUME_HTML_TEMPLATE = """
 <style>
     @page {
         size: letter;
+        {% if compact_mode %}
+        margin: 0.75cm 1.1cm 0.75cm 1.1cm;
+        {% else %}
         margin: 1.05cm 1.35cm 1.05cm 1.35cm;
+        {% endif %}
     }
     body {
         font-family: Helvetica, Arial, sans-serif;
         color: #111111;
+        {% if compact_mode %}
+        font-size: 9.0pt;
+        line-height: 1.26;
+        {% else %}
         font-size: 9.6pt;
         line-height: 1.34;
+        {% endif %}
     }
     .header {
         text-align: center;
+        {% if compact_mode %}
+        margin-bottom: 5px;
+        {% else %}
         margin-bottom: 8px;
+        {% endif %}
     }
     .name {
+        {% if compact_mode %}
+        font-size: 17.5pt;
+        margin-bottom: 2px;
+        {% else %}
         font-size: 19pt;
+        margin-bottom: 3px;
+        {% endif %}
         font-weight: bold;
         letter-spacing: 0.2px;
-        margin-bottom: 3px;
         color: #000000;
     }
     .contact-line {
@@ -641,21 +670,34 @@ RESUME_HTML_TEMPLATE = """
         line-height: 1.35;
     }
     h2 {
+        {% if compact_mode %}
+        font-size: 9.2pt;
+        margin-top: 6px;
+        margin-bottom: 3.5px;
+        padding-bottom: 1.5px;
+        {% else %}
         font-size: 9.8pt;
+        margin-top: 9px;
+        margin-bottom: 5px;
+        padding-bottom: 2px;
+        {% endif %}
         font-weight: bold;
         text-transform: uppercase;
         letter-spacing: 0.7px;
         border-bottom: 1px solid #111111;
-        padding-bottom: 2px;
-        margin-top: 9px;
-        margin-bottom: 5px;
         color: #000000;
+        page-break-after: avoid;
     }
     p {
         margin: 0 0 4px 0;
     }
     .entry-block {
+        {% if compact_mode %}
+        margin-bottom: 4px;
+        {% else %}
         margin-bottom: 6px;
+        {% endif %}
+        page-break-inside: avoid;
     }
     table.entry-header {
         width: 100%;
@@ -707,6 +749,7 @@ RESUME_HTML_TEMPLATE = """
         border-collapse: collapse;
         margin-top: 2px;
         margin-bottom: 4px;
+        page-break-inside: avoid;
     }
     table.skills-table td.skill-cat {
         width: 22%;
@@ -728,6 +771,7 @@ RESUME_HTML_TEMPLATE = """
         border: none;
         border-collapse: collapse;
         margin-top: 2px;
+        page-break-inside: avoid;
     }
     table.cert-table td.cert-left {
         text-align: left;
@@ -2423,6 +2467,50 @@ def resume_contains_keyword_or_synonym(resume_lower: str, keyword: str) -> bool:
     return False
 
 
+# -------------------------------------------------------------------------
+# Soft Skills & Transferable Competencies Lexicon
+# -------------------------------------------------------------------------
+
+COMMON_SOFT_SKILLS: Set[str] = {
+    "communication", "verbal communication", "written communication", "oral communication",
+    "collaboration", "cross-functional", "cross-functional collaboration", "teamwork", "team player",
+    "leadership", "mentorship", "mentoring", "coaching", "team leadership", "supervision",
+    "problem solving", "problem-solving", "critical thinking", "analytical skills", "troubleshooting",
+    "adaptability", "flexibility", "agility", "time management", "prioritization", "fast learner",
+    "project management", "stakeholder management", "organization", "organizational skills", "planning",
+    "attention to detail", "detail-oriented", "detail oriented", "accuracy",
+    "creativity", "innovation", "initiative", "self-starter", "ownership", "proactive",
+    "accountability", "negotiation", "conflict resolution", "presentation", "public speaking",
+    "empathy", "interpersonal", "interpersonal skills", "active listening", "strategic thinking",
+    "work ethic", "resilience", "decision making", "multitasking", "client facing", "customer empathy"
+}
+
+def is_soft_skill_term(term: str) -> bool:
+    t = term.lower().strip()
+    if t in COMMON_SOFT_SKILLS:
+        return True
+    for soft in COMMON_SOFT_SKILLS:
+        if len(soft) >= 5 and (soft in t or t in soft):
+            return True
+    return False
+
+def partition_hard_and_soft_skills(
+    matched_kws: List[str], missing_kws: List[str]
+) -> Tuple[List[str], List[str], List[str], List[str], float, float]:
+    hard_matched = [k for k in matched_kws if not is_soft_skill_term(k)]
+    soft_matched = [k for k in matched_kws if is_soft_skill_term(k)]
+    hard_missing = [k for k in missing_kws if not is_soft_skill_term(k)]
+    soft_missing = [k for k in missing_kws if is_soft_skill_term(k)]
+
+    hard_total = len(hard_matched) + len(hard_missing)
+    soft_total = len(soft_matched) + len(soft_missing)
+
+    hard_rate = round((len(hard_matched) / max(1, hard_total)) * 100.0, 1) if hard_total > 0 else 100.0
+    soft_rate = round((len(soft_matched) / max(1, soft_total)) * 100.0, 1) if soft_total > 0 else 100.0
+
+    return hard_matched, hard_missing, soft_matched, soft_missing, hard_rate, soft_rate
+
+
 def analyze_ats_alignment(
     resume_text: str, raw_jd_text: str
 ) -> Tuple[int, str, float, float, List[str], List[str], List[str], List[str]]:
@@ -2635,6 +2723,7 @@ def render_pdf_in_memory(data: Dict[str, Any]) -> bytes:
     with zero duplicate dates or years.
     """
     clean_data = dict(data)
+    clean_data["compact_mode"] = bool(clean_data.get("compact_mode", False))
     clean_data["full_name"] = sanitize_pdf_cid_artifacts(str(clean_data.get("full_name") or "")).strip()
     clean_data["summary"] = sanitize_pdf_cid_artifacts(str(clean_data.get("summary") or "")).strip()
 
@@ -2889,6 +2978,25 @@ async def analyze_resume(
         missing_keywords=missing_kws,
     )
 
+    # 6. Hard Skills vs. Soft Skills Categorization & Contextual Verification
+    hard_matched, hard_missing, soft_matched, soft_missing, hard_rate, soft_rate = partition_hard_and_soft_skills(
+        matched_kws, missing_kws
+    )
+
+    demonstrated_tokens = " ".join(
+        [f"{e.title} {e.company} {' '.join(e.bullets)}" for e in parsed_profile.experience] +
+        [f"{p.name} {p.tech} {' '.join(p.bullets)}" for p in (parsed_profile.projects or [])]
+    ).lower()
+
+    context_count = sum(
+        1 for kw in matched_kws if resume_contains_keyword_or_synonym(demonstrated_tokens, kw)
+    )
+    if matched_kws:
+        recs.insert(
+            0,
+            f"Contextual Impact: {context_count} of {len(matched_kws)} matched competencies appear inside your active Experience or Projects achievements.",
+        )
+
     jd_words: List[str] = clean_jd.split()
     stats = StatsModel(
         resume_word_count=len(resume_words),
@@ -2918,6 +3026,13 @@ async def analyze_resume(
         bullet_impact=bullet_impact,
         structural_audit=structural_audit,
         ephemeral_notice="This document was verified as a Resume, parsed entirely in volatile memory, and purged immediately.",
+        hard_skills_match_rate=hard_rate,
+        soft_skills_match_rate=soft_rate,
+        hard_matched=hard_matched,
+        hard_missing=hard_missing,
+        soft_matched=soft_matched,
+        soft_missing=soft_missing,
+        context_count=context_count,
     )
 
 
