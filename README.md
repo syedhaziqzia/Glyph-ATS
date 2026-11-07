@@ -14,7 +14,7 @@
 
 <p align="center">
   <a href="https://github.com/syedhaziqzia/Glyph-ATS"><img src="https://img.shields.io/badge/Status-Production%20Ready-brightgreen" alt="Status"></a>
-  <a href="https://github.com/syedhaziqzia/Glyph-ATS"><img src="https://img.shields.io/badge/Tests-11%20passing-brightgreen" alt="Tests"></a>
+  <a href="https://github.com/syedhaziqzia/Glyph-ATS"><img src="https://img.shields.io/badge/Tests-13%20passing-brightgreen" alt="Tests"></a>
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-0.115+-009688&logo=fastapi&logoColor=white" alt="FastAPI"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB&logo=python&logoColor=white" alt="Python"></a>
   <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/TailwindCSS-v3.4-38B2AC&logo=tailwind-css&logoColor=white" alt="TailwindCSS"></a>
