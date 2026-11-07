@@ -126,18 +126,26 @@ git clone https://github.com/syedhaziqzia/Glyph-ATS.git
 cd Glyph-ATS
 ```
 
-### 3. Set Up a Virtual Environment (Recommended)
+### 3. Set Up a Virtual Environment (Optional)
 
-**On Windows (PowerShell):**
-```powershell
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-```
+You can run Glyph directly using your system's global Python, or inside an isolated virtual environment:
 
-**On macOS / Linux:**
+#### Option A: With a Virtual Environment (Recommended)
+- **Windows (PowerShell):**
+  ```powershell
+  python -m venv venv
+  .\venv\Scripts\Activate.ps1
+  ```
+- **macOS / Linux:**
+  ```bash
+  python3 -m venv venv
+  source venv/bin/activate
+  ```
+
+#### Option B: Without a Virtual Environment (Direct Run)
+If you prefer not to create a virtual environment, simply skip Option A and install the dependencies directly using your system Python:
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+pip install -r backend/requirements.txt
 ```
 
 ### 4. Install Dependencies
